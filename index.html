@@ -996,9 +996,9 @@
       { size: 12, color: THEME.grey, align: 'center' });
     /* 电场方向提示 */
     var ey = midY + tubeH * 0.5 + 16;
-    arrow(ctx, x0 + 8, ey, x1 - 8, ey, THEME.red, 1.6, 6);
+    arrow(ctx, x0 + 8, ey, x1 - 8, ey, 'rgba(255,255,255,0.55)', 1.6, 6);
     text(ctx, W < 620 ? '管内电场方向' : '管内电场方向（由 + 指向 −）', x0 + 8, ey + 16,
-      { size: 11.5, color: THEME.red, alpha: 0.9 });
+      { size: 11.5, color: THEME.grey });
     /* 问题栏 */
     var qy = H * 0.72;
     textBlock(ctx, '电子在加速器中是受到什么力的作用而加速的呢？', W / 2, qy, W - 28,
@@ -1645,8 +1645,10 @@
     panel(x0R, '靶 · 电偏转（静电力 qE 当主角）', THEME.yellow);
     var oxR = x0R + colW * 0.14, oyR = midR;
     var spanR = colW * 0.74;
-    plateH(ctx, oxR - 6, oxR + spanR + 6, yTop, '+', THEME.red, false);
-    plateH(ctx, oxR - 6, oxR + spanR + 6, yBot, '−', THEME.blue, false);
+    plateH(ctx, oxR - 6, oxR + spanR + 6, yTop, '+', THEME.white, false);
+    plateH(ctx, oxR - 6, oxR + spanR + 6, yBot, '−', THEME.white, false);
+    text(ctx, '＋', oxR - 12, yTop - 10, { size: 11.5, color: THEME.grey, align: 'right' });
+    text(ctx, '－', oxR - 12, yBot + 10, { size: 11.5, color: THEME.grey, align: 'right' });
     stroke(ctx, THEME.soft2, 1); dash(ctx, [7, 5]);
     seg(ctx, oxR - 34, oyR, oxR + spanR + 20, oyR); nodash(ctx);
     arrow(ctx, oxR - 30, oyR, oxR - 4, oyR, THEME.white, 2.4, 7);
@@ -1839,7 +1841,7 @@
 
     /* 两端：边缘效应（弯曲的场线，范围 ∝ d） */
     var edgeW = compact ? clamp(halfD * 1.6, 16, W * 0.10) : clamp(halfD * 3.0, 30, W * 0.16);
-    stroke(ctx, THEME.purple, 1.2);
+    stroke(ctx, 'rgba(255,255,255,0.42)', 1.2);
     for (i = 0; i < 5; i++) {
       var t = i / 4;
       ctx.beginPath();
@@ -1856,13 +1858,13 @@
       ctx.stroke();
     }
     text(ctx, compact ? '边缘：场线弯曲' : '两端：场线向外弯曲', xa - edgeW - 4, midY - halfD * 1.9,
-      { size: 11.5, color: THEME.purple, align: compact ? 'left' : 'center' });
+      { size: 11.5, color: THEME.grey, align: compact ? 'left' : 'center' });
     if (!compact) {
       text(ctx, '（边缘效应）', xb + edgeW + 6, midY - halfD * 1.7,
-        { size: 11.5, color: THEME.purple, align: 'center' });
+        { size: 11.5, color: THEME.grey, align: 'center' });
     }
     /* 边缘影响范围 ∝ d */
-    dimH(ctx, midY + halfD + 26, xa - edgeW, xa, compact ? '≈ 几倍 d' : '边缘影响 ≈ 几倍 d', THEME.purple);
+    dimH(ctx, midY + halfD + 26, xa - edgeW, xa, compact ? '≈ 几倍 d' : '边缘影响 ≈ 几倍 d', THEME.grey);
     text(ctx, 'd = ' + lfmt(d), compact ? W - 12 : xb + 12, midY + halfD + 12,
       { size: 12, color: THEME.white, align: compact ? 'right' : 'left' });
 
@@ -1883,7 +1885,7 @@
       rowsN += wrapLines(ctx, '· ' + lines[i5], W - 48, compact ? 11 : 12.5).length;
     }
     var boxH = 32 + rowsN * lh5 + (compact ? 6 : 8);
-    box(ctx, 12, by, W - 24, boxH, '环节⑤ · 一个"能量不守恒"的悖论（外01）', THEME.purple);
+    box(ctx, 12, by, W - 24, boxH, '环节⑤ · 一个"能量不守恒"的悖论（外01）', THEME.soft2);
     var ly = by + 32;
     for (i = 0; i < lines.length; i++) {
       var got = textBlock(ctx, '· ' + lines[i], 22, ly, W - 48,
