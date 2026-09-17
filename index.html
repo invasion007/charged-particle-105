@@ -141,8 +141,10 @@
         <div class="rd"><span>电子所在圆筒</span><b id="rdCcur">—</b></div>
         <div class="rd"><span>该筒内速度 vₙ</span><b class="yellow" id="rdCv">—</b></div>
         <div class="rd"><span>该筒长度 lₙ</span><b class="yellow" id="rdCl">—</b></div>
-        <div class="rd"><span>lₙ / l₁（应 = √n）</span><b class="yellow" id="rdCr">—</b></div>
-        <div class="rd"><span>穿过该筒用时（应 = T/2）</span><b id="rdCt">—</b></div>
+        <div class="rd"><span>lₙ / l₁</span><b class="yellow" id="rdCr">—</b></div>
+        <div class="rd"><span>√n</span><b class="yellow" id="rdCr2">—</b></div>
+        <div class="rd"><span>穿过该筒用时</span><b id="rdCt">—</b></div>
+        <div class="rd"><span>T/2</span><b id="rdCt2">—</b></div>
       </div>
 
       <div id="gNonuni" class="hidden">
@@ -182,14 +184,16 @@
       <div id="gEdge" class="hidden">
         <div class="rd"><span>板距 d</span><b class="green" id="rdEd">—</b></div>
         <div class="rd"><span>板长 l（例题2）</span><b id="rdEl">6.00 cm</b></div>
-        <div class="rd"><span>边缘影响范围 ≈ 几倍 d</span><b class="purple" id="rdEe">—</b></div>
-        <div class="rd"><span>边缘区 / 全板长</span><b class="purple" id="rdEr">—</b></div>
+        <div class="rd"><span>边缘影响范围</span><b class="purple" id="rdEe">—</b></div>
+        <div class="rd"><span>边缘区 / 板长</span><b id="rdEr">—</b></div>
+        <div class="rd"><span>结论</span><b class="purple" id="rdEr2">—</b></div>
       </div>
 
       <div id="gApps" class="hidden">
         <div class="rd"><span>加速长度 l</span><b class="green" id="rdAl">—</b></div>
         <div class="rd"><span>末速度 v</span><b class="green" id="rdAv2">—</b></div>
         <div class="rd"><span>加速后动能 Ek</span><b class="gold" id="rdAek">—</b></div>
+        <div class="rd"><span>换算成电子伏</span><b class="gold" id="rdAek2">—</b></div>
         <div class="rd"><span>所需场强 E</span><b class="yellow" id="rdAE2">—</b></div>
         <div class="rd"><span>所需电压 U = El</span><b id="rdAU2">—</b></div>
       </div>
@@ -2551,8 +2555,10 @@
       $('rdCcur').textContent = '第 ' + clamp(Math.ceil(st.t * n), 1, n) + ' 个';
       $('rdCv').textContent = R.vfmt(vn);
       $('rdCl').textContent = R.lfmt(ln);
-      $('rdCr').textContent = (ln / l1).toFixed(4) + '（√n = ' + Math.sqrt(n).toFixed(4) + '）';
-      $('rdCt').textContent = R.sci(ln / vn, 2) + ' s　(T/2 = ' + R.sci(T / 2, 2) + ' s)';
+      $('rdCr').textContent = (ln / l1).toFixed(4);
+      $('rdCr2').textContent = Math.sqrt(n).toFixed(4);
+      $('rdCt').textContent = R.sci(ln / vn, 2) + ' s';
+      $('rdCt2').textContent = R.sci(T / 2, 2) + ' s';
     } else if (sc === 'nonuni') {
       var Q = P.NU_Q, q = -P.E_CHG, m = P.M_E, r0 = P.NU_R0, r1 = P.NU_R1;
       var rNow = r0 + (r1 - r0) * clamp(st.t, 0, 1);
@@ -2595,15 +2601,16 @@
       $('rdTt').textContent = (st.t * 100).toFixed(0) + '% 个周期';
     } else if (sc === 'edge') {
       $('rdEd').textContent = R.lfmt(st.d);
-      $('rdEe').textContent = '≈ 3 倍 d（两侧共 6d）';
-      $('rdEr').textContent = '6d / l = ' + (6 * st.d / 0.06).toFixed(2) +
-        (6 * st.d / 0.06 >= 1 ? '（已超过板长）' : '');
+      $('rdEe').textContent = '≈ 3d（两侧 6d）';
+      $('rdEr').textContent = (6 * st.d / 0.06).toFixed(2) + ' 倍';
+      $('rdEr2').textContent = (6 * st.d / 0.06 >= 1 ? '已超过板长' : '远小于板长');
     } else if (sc === 'apps') {
       var m2 = P.M_P, q2 = P.E_CHG;
       var E2 = P.beamE(st.v, q2, m2, st.len);
       $('rdAl').textContent = R.num(st.len, 1) + ' m';
       $('rdAv2').textContent = R.vfmt(st.v);
-      $('rdAek').textContent = R.kefmt(P.beamKE(st.v, m2)) + '（' + R.evfmt(P.beamKE(st.v, m2)) + '）';
+      $('rdAek').textContent = R.kefmt(P.beamKE(st.v, m2));
+      $('rdAek2').textContent = R.evfmt(P.beamKE(st.v, m2));
       $('rdAE2').textContent = R.efmt(E2);
       $('rdAU2').textContent = R.ufmt(E2 * st.len);
     } else {
