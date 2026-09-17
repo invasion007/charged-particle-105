@@ -1,0 +1,2939 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>10.5 带电粒子在电场中的运动 · 可交互课件</title>
+<style>
+  :root{
+    /* 配色基准：原版 Manim —— 纯黑底 + 白线为主 + Manim 官方色常量
+       黄 = 结论色（v、y、tanθ、屏上位移 Y）｜红 = 正极板／正离子｜蓝 = 负极板／电子／v⊥
+       绿 = 第二条路／对照组｜紫 = 辅助构造（边缘效应）｜金 = 能量条 */
+    --bg:#000000; --bg2:#0a0a0a; --panel:#0e0e0e; --line:#242424; --line2:#383838;
+    --ink:#FFFFFF; --ink2:#B0B0B0; --muted:#888888;
+    --pos:#FC6255; --neg:#58C4DD;
+    --yellow:#FFFF00; --gold:#F0AC5F; --green:#83C167; --purple:#9A72AC;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC","WenQuanYi Zen Hei",sans-serif;
+    overflow:hidden;
+  }
+  .app{display:grid; grid-template-rows:auto auto 1fr auto auto; height:100vh;}
+
+  header{display:flex; align-items:center; gap:14px; padding:0 18px; height:42px; flex-wrap:nowrap;
+    background:var(--bg2); border-bottom:1px solid var(--line); overflow:hidden;}
+  header h1{font-size:16px; margin:0; font-weight:600; letter-spacing:.5px; white-space:nowrap; flex:0 0 auto;}
+  .act{font-size:13px; color:var(--yellow); border:1px solid var(--line2); border-radius:10px;
+    padding:1px 9px; white-space:nowrap; flex:0 0 auto;}
+  .steptitle{font-size:15px; color:var(--ink); font-weight:600; flex:1 1 auto; min-width:0;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .stepsn{font-size:13px; color:var(--ink2); font-variant-numeric:tabular-nums; flex:0 0 auto;}
+
+  .stage{display:grid; grid-template-columns:1fr 274px; grid-template-rows:minmax(0,1fr); min-height:0;}
+
+  .topnav{display:flex; align-items:center; gap:5px; padding:5px 14px 6px;
+    background:var(--bg2); border-bottom:1px solid var(--line); overflow-x:auto; overflow-y:hidden;}
+  .topnav .grouplab{flex:0 0 auto; font-size:11px; letter-spacing:.6px; color:var(--muted); font-weight:600; white-space:nowrap;}
+  .topnav .sep{flex:0 0 auto; width:1px; height:15px; background:var(--line2); margin:0 5px;}
+  .topnav a{flex:0 0 auto; min-width:27px; height:22px; padding:0 7px; display:inline-flex; align-items:center; justify-content:center;
+    font-size:12px; font-variant-numeric:tabular-nums; color:var(--ink2); background:#141414;
+    border:1px solid var(--line2); border-radius:6px; cursor:pointer;}
+  .topnav a:hover{background:#1e1e1e; color:var(--ink);}
+  .topnav a.on{background:rgba(255,255,0,0.12); border-color:var(--yellow); color:var(--yellow); font-weight:700;}
+  .canvaswrap{position:relative; min-width:0; min-height:0; padding:6px 8px 0 8px; overflow:hidden;}
+  canvas{display:block; position:absolute; left:8px; top:6px; width:calc(100% - 16px); height:calc(100% - 6px);}
+  canvas.grab{cursor:grab;}
+  canvas.grabbing{cursor:grabbing;}
+  .hint{padding:7px 20px 0 20px; font-size:12.5px; color:var(--muted); height:38px; overflow:hidden;}
+  .hint b{color:var(--yellow); font-weight:600;}
+
+  aside{background:var(--panel); border-left:1px solid var(--line); padding:10px 12px 14px; overflow-y:auto; min-height:0;}
+  aside h3{font-size:12px; color:var(--muted); margin:14px 0 6px; font-weight:600; letter-spacing:.5px;}
+  aside h3:first-child{margin-top:2px;}
+  .rd{display:flex; align-items:baseline; justify-content:space-between; gap:8px; padding:3px 0;
+    font-size:12.5px; color:var(--ink2); border-bottom:1px dashed #242424;}
+  .rd span{white-space:nowrap;}
+  .rd b{font-size:14.5px; color:var(--ink); font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap;}
+  .rd b.yellow{color:var(--yellow);}
+  .rd b.gold{color:var(--gold);}
+  .rd b.green{color:var(--green);}
+  .rd b.purple{color:var(--purple);}
+  .rd b.pos{color:var(--pos);}
+  .rd b.neg{color:var(--neg);}
+  .formula{font-size:13.5px; color:var(--ink); background:#141414; border:1px solid var(--line2);
+    border-radius:8px; padding:8px 10px; line-height:1.5; word-break:break-word;}
+  .note{font-size:12.5px; color:var(--ink2); line-height:1.62;}
+  .note b{color:var(--yellow); font-weight:600;}
+  .grp{display:flex; align-items:center; gap:6px; flex-wrap:wrap;}
+  .grp .lab{font-size:12.5px; color:var(--muted);}
+  button{font-family:inherit; font-size:12.5px; color:var(--ink2); background:#141414;
+    border:1px solid var(--line2); border-radius:6px; padding:5px 10px; cursor:pointer; white-space:nowrap;}
+  button:hover{background:#1e1e1e; color:var(--ink);}
+  button.on{background:rgba(255,255,0,0.12); border-color:var(--yellow); color:var(--yellow); font-weight:700;}
+  button.main{background:#1a1a1a; color:var(--ink);}
+
+  /* 底栏固定两行高度 —— 控件多少都不改变画布尺寸（翻页前后像素指纹才稳定） */
+  footer{display:grid; grid-template-rows:32px 40px; gap:6px; height:94px; overflow:hidden;
+    padding:6px 14px 8px; background:var(--bg2); border-top:1px solid var(--line);}
+  .fnav{display:flex; align-items:center; gap:8px; min-width:0;}
+  .fctl{display:flex; align-items:center; gap:16px; overflow-x:auto; overflow-y:hidden;
+    white-space:nowrap; padding-bottom:2px;}
+  .fctl > *{flex:0 0 auto;}
+  .bar{position:relative; flex:1 1 130px; min-width:100px; height:6px; background:#141414; border-radius:3px; cursor:pointer;}
+  .bar i{display:block; height:100%; width:0; background:var(--yellow); border-radius:3px;}
+  .bar u{position:absolute; top:-2px; width:1px; height:10px; background:#4a4a4a;}
+  .slider{display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--muted);}
+  .slider input[type=range]{width:92px; accent-color:#4a4a4a;}
+  .slider b{color:var(--ink); font-variant-numeric:tabular-nums; min-width:56px; text-align:right;}
+  .hidden{display:none !important;}
+
+  @media (max-width: 760px){
+    .stage{grid-template-columns:1fr;}
+    aside{border-left:none; border-top:1px solid var(--line); max-height:30vh;}
+    .hint{height:44px; font-size:12px; line-height:1.35;}
+    header{gap:9px; padding:0 10px;}
+    header h1{font-size:12px;}
+    .act{display:none;}
+    .steptitle{font-size:12.5px;}
+    .stepsn{font-size:12px;}
+    .slider input[type=range]{width:70px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>10.5 带电粒子在电场中的运动</h1>
+    <span class="act" id="actTag">第一幕</span>
+    <span class="steptitle" id="stepTitle">—</span>
+    <span class="stepsn" id="stepSn">1 / 25</span>
+  </header>
+
+  <nav class="topnav" id="toc" aria-label="步骤导航"></nav>
+
+  <div class="stage">
+    <div class="canvaswrap">
+      <canvas id="cv"></canvas>
+    </div>
+    <aside>
+      <h3>本步读数</h3>
+
+      <div id="gAccel">
+        <div class="rd"><span>粒子</span><b class="neg" id="rdPart">电子</b></div>
+        <div class="rd"><span>两板电压 U</span><b class="green" id="rdAU">—</b></div>
+        <div class="rd"><span>板距 d</span><b class="green" id="rdAD">—</b></div>
+        <div class="rd"><span>场强 E = U/d</span><b id="rdAE">—</b></div>
+        <div class="rd"><span>加速度 a = qE/m</span><b id="rdAa">—</b></div>
+        <div class="rd"><span>到达 B 板的速度 v</span><b class="yellow" id="rdAv">—</b></div>
+        <div class="rd"><span>静电力 qE</span><b class="pos" id="rdAFq">—</b></div>
+        <div class="rd"><span>重力 mg</span><b class="neg" id="rdAFg">—</b></div>
+        <div class="rd"><span>qE / mg</span><b class="yellow" id="rdARatio">—</b></div>
+        <div class="rd"><span>重力判据</span><b id="rdAVerdict">—</b></div>
+      </div>
+
+      <div id="gCyl" class="hidden">
+        <div class="rd"><span>圆筒数 n</span><b id="rdCn">6</b></div>
+        <div class="rd"><span>间隙电压 u</span><b class="green" id="rdCu">—</b></div>
+        <div class="rd"><span>交变电压周期 T</span><b id="rdCT">—</b></div>
+        <div class="rd"><span>电子所在圆筒</span><b id="rdCcur">—</b></div>
+        <div class="rd"><span>该筒内速度 vₙ</span><b class="yellow" id="rdCv">—</b></div>
+        <div class="rd"><span>该筒长度 lₙ</span><b class="yellow" id="rdCl">—</b></div>
+        <div class="rd"><span>lₙ / l₁（应 = √n）</span><b class="yellow" id="rdCr">—</b></div>
+        <div class="rd"><span>穿过该筒用时（应 = T/2）</span><b id="rdCt">—</b></div>
+      </div>
+
+      <div id="gNonuni" class="hidden">
+        <div class="rd"><span>电子与尖端的距离 r</span><b class="green" id="rdNr">—</b></div>
+        <div class="rd"><span>该处场强 E = kQ/r²</span><b id="rdNE">—</b></div>
+        <div class="rd"><span>E(r) / E(r₀)</span><b id="rdNE2">—</b></div>
+        <div class="rd"><span>当前速度 v</span><b class="yellow" id="rdNv">—</b></div>
+        <div class="rd"><span>末速度（数值积分）</span><b class="yellow" id="rdNv1">—</b></div>
+        <div class="rd"><span>末速度（能量公式）</span><b class="yellow" id="rdNv2">—</b></div>
+        <div class="rd"><span>两者相对差</span><b id="rdNd">—</b></div>
+      </div>
+
+      <div id="gDeflect" class="hidden">
+        <div class="rd"><span>偏转电压 U</span><b class="green" id="rdDU">—</b></div>
+        <div class="rd"><span>板长 l / 板距 d</span><b class="green" id="rdDLD">—</b></div>
+        <div class="rd"><span>入射速度 v₀</span><b class="yellow" id="rdDv0">—</b></div>
+        <div class="rd"><span>加速度 a = qU/(md)</span><b id="rdDa">—</b></div>
+        <div class="rd"><span>飞行时间 t = l/v₀</span><b id="rdDt">—</b></div>
+        <div class="rd"><span>侧移 y</span><b class="yellow" id="rdDy">—</b></div>
+        <div class="rd"><span>tanθ = v⊥/v₀</span><b class="yellow" id="rdDtan">—</b></div>
+        <div class="rd"><span>偏转角 θ</span><b class="yellow" id="rdDth">—</b></div>
+        <div class="rd"><span>出射速度 v</span><b class="yellow" id="rdDv">—</b></div>
+        <div class="rd"><span>动能增量 qE·y</span><b class="gold" id="rdDdEk">—</b></div>
+        <div class="rd"><span>是否打在极板上</span><b id="rdDhit">—</b></div>
+        <div class="rd"><span>电子枪加速电压 U₀</span><b class="green" id="rdDU0">—</b></div>
+      </div>
+
+      <div id="gTube" class="hidden">
+        <div class="rd"><span>当前模式</span><b id="rdTm">—</b></div>
+        <div class="rd"><span>Y 偏转电压 U_Y</span><b class="green" id="rdTUY">—</b></div>
+        <div class="rd"><span>X 偏转电压 U_X</span><b class="green" id="rdTUX">—</b></div>
+        <div class="rd"><span>屏上竖直位移 Y</span><b class="yellow" id="rdTY">—</b></div>
+        <div class="rd"><span>屏上水平位移 X</span><b class="yellow" id="rdTX">—</b></div>
+        <div class="rd"><span>信号的周期位置</span><b id="rdTt">—</b></div>
+      </div>
+
+      <div id="gEdge" class="hidden">
+        <div class="rd"><span>板距 d</span><b class="green" id="rdEd">—</b></div>
+        <div class="rd"><span>板长 l（例题2）</span><b id="rdEl">6.00 cm</b></div>
+        <div class="rd"><span>边缘影响范围 ≈ 几倍 d</span><b class="purple" id="rdEe">—</b></div>
+        <div class="rd"><span>边缘区 / 全板长</span><b class="purple" id="rdEr">—</b></div>
+      </div>
+
+      <div id="gApps" class="hidden">
+        <div class="rd"><span>加速长度 l</span><b class="green" id="rdAl">—</b></div>
+        <div class="rd"><span>末速度 v</span><b class="green" id="rdAv2">—</b></div>
+        <div class="rd"><span>加速后动能 Ek</span><b class="gold" id="rdAek">—</b></div>
+        <div class="rd"><span>所需场强 E</span><b class="yellow" id="rdAE2">—</b></div>
+        <div class="rd"><span>所需电压 U = El</span><b id="rdAU2">—</b></div>
+      </div>
+
+      <div id="gNone" class="hidden">
+        <div class="rd"><span>这一屏</span><b id="rdNone">不用拖</b></div>
+      </div>
+
+      <h3>这一刻的公式</h3>
+      <div class="formula" id="rdFormula">—</div>
+
+      <h3>提示</h3>
+      <div class="note" id="rdNote"></div>
+
+      <h3>怎么用</h3>
+      <div class="note">
+        画布上能拖的东西会变成<b style="color:var(--yellow)">抓手</b>；<b style="color:var(--yellow)">双击画布</b>等于"复位本步"。
+        键盘 <b style="color:var(--yellow)">← →</b> 翻页、<b style="color:var(--yellow)">Home</b> 回第一步；顶部数字条可直接跳步。
+      </div>
+    </aside>
+  </div>
+
+  <div class="hint" id="hint"></div>
+
+  <footer>
+    <div class="fnav">
+      <button id="btnPrev">◀ 上一步</button>
+      <button id="btnNext" class="main">下一步 ▶</button>
+      <button id="btnReset">↺ 复位本步</button>
+      <div class="bar" id="prog"><i></i></div>
+    </div>
+
+    <div class="fctl">
+    <div class="slider" id="wrapU">
+      <span id="lbUname">电压 U</span><input type="range" id="rgU" min="0" max="600" step="1" value="90"><b id="lbU">90 V</b>
+    </div>
+    <div class="slider" id="wrapD">
+      <span>板距 d</span><input type="range" id="rgD" min="5" max="60" step="1" value="20"><b id="lbD">20.0 mm</b>
+    </div>
+    <div class="slider" id="wrapL">
+      <span>板长 l</span><input type="range" id="rgL" min="20" max="120" step="1" value="60"><b id="lbL">60.0 mm</b>
+    </div>
+    <div class="slider" id="wrapV0">
+      <span>入射速度 v₀</span><input type="range" id="rgV0" min="5" max="60" step="1" value="30"><b id="lbV0">3.0×10⁷</b>
+    </div>
+    <div class="slider" id="wrapU0">
+      <span>加速电压 U₀</span><input type="range" id="rgU0" min="200" max="3000" step="50" value="1000"><b id="lbU0">1000 V</b>
+    </div>
+    <div class="slider" id="wrapT">
+      <span id="lbTname">粒子位置</span><input type="range" id="rgT" min="0" max="1000" step="1" value="600"><b id="lbT">60%</b>
+    </div>
+    <div class="slider" id="wrapN">
+      <span>圆筒数 n</span><input type="range" id="rgN" min="1" max="8" step="1" value="6"><b id="lbN">6</b>
+    </div>
+    <div class="slider" id="wrapUc">
+      <span>间隙电压 u</span><input type="range" id="rgUc" min="100" max="2000" step="50" value="500"><b id="lbUc">500 V</b>
+    </div>
+    <div class="slider" id="wrapUX">
+      <span>X 偏转电压</span><input type="range" id="rgUX" min="-200" max="200" step="5" value="0"><b id="lbUX">0 V</b>
+    </div>
+    <div class="slider" id="wrapUY">
+      <span>Y 偏转电压</span><input type="range" id="rgUY" min="-120" max="120" step="5" value="0"><b id="lbUY">0 V</b>
+    </div>
+    <div class="slider" id="wrapLen">
+      <span>加速长度 l</span><input type="range" id="rgLen" min="5" max="80" step="1" value="40"><b id="lbLen">4.0 m</b>
+    </div>
+    <div class="slider" id="wrapV">
+      <span>末速度 v</span><input type="range" id="rgV" min="2" max="30" step="0.5" value="10"><b id="lbV">1.0×10⁷</b>
+    </div>
+
+    <div class="grp" id="wrapParticle">
+      <span class="lab">粒子</span>
+      <button data-p="e">电子</button>
+      <button data-p="p">质子</button>
+      <button data-p="h1">一价氢离子</button>
+      <button data-p="he1">一价氦离子</button>
+      <button data-p="he2">二价氦离子</button>
+      <button data-p="oil">带电油滴</button>
+    </div>
+    <div class="grp" id="wrapJudge">
+      <span class="lab">题目问什么</span>
+      <button data-judge="time">要用到时间</button>
+      <button data-judge="speed">只要位移、速率</button>
+    </div>
+    <div class="grp" id="wrapTubeMode">
+      <span class="lab">偏转电压</span>
+      <button data-tm="flat">都不加</button>
+      <button data-tm="pointY">Y 加不变电压</button>
+      <button data-tm="pointX">X 加不变电压</button>
+      <button data-tm="yline">Y 加变化电压</button>
+      <button data-tm="xshift">Y 变＋X 不变</button>
+      <button data-tm="scan">X 加扫描电压</button>
+    </div>
+    </div>
+  </footer>
+</div>
+
+<script>
+/* =====================================================================
+   viz_ce_physics.js —— 纯物理内核（不依赖 DOM，可在 node 里直接跑自检）
+
+   课题：10.5 带电粒子在电场中的运动（人教版必修三 P44–P49）
+
+   口径（与教材原文、教参 P57–P61 逐条对齐）：
+     加速（教材 P44 两种思路）：
+       牛顿第二定律通道：a = qE/m = qU/(md) → v² = 2ad → v = √(2qU/m)
+       动能定理通道：    W = qU → qU = ½mv²      → v = √(2qU/m)
+       判据（教材原句）：涉及【运动时间】⇒ 力与运动；只涉及【位移、速率】
+                        或【非匀强电场】⇒ 功与能量
+       重力：通常可忽略（教参 P58：电子/质子/离子等微观粒子）
+     例题1 多级圆筒（教材 P45）：
+       金属导体内部 E = 0 ⇒ 圆筒内匀速；只在间隙加速，每过一隙 ΔEk = eu
+       v_n = √(2neu/m)，  l_n = v_n·T/2 = (T/2)·√(2neu/m) ⇒ l_n ∝ √n
+     偏转（教材 P46–P47 例题2，类平抛）：
+       a = qU/(md) ｜ t = l/v₀ ｜ y = ½at² = qUl²/(2mdv₀²)
+       v⊥ = at = qUl/(mdv₀) ｜ tanθ = v⊥/v₀ = qUl/(mdv₀²)
+       由静止经 U₀ 加速再射入：½mv₀² = qU₀ ⇒
+         y = Ul²/(4U₀d)，tanθ = Ul/(2U₀d)  ← 【只含装置量，与 q、m 无关】
+       教材例题2 数值：l = 6.0 cm、d = 2 cm、U = 200 V、v₀ = 3.0×10⁷ m/s
+         ⇒ y = 0.35 cm、θ = 6.7°
+       全过程动能定理：qU_总 = ΔEk，U_总 = E·y（只对全过程写，不写分方向）
+       出界判据：y ≤ d/2 ⇔ v₀ ≥ (l/d)√(qU/m) ⇔ U ≤ md²v₀²/(ql²)
+     示波管（教材 P47 拓展学习）：
+       Y = y + L·tanθ = y·(1 + 2L/l) —— 都由 y ∝ U 线性标定
+       稳定图像条件：信号电压周期性，且扫描电压与信号电压周期相同
+     教材练习（P49）：1) 二价氧离子 qU = 2.9×10⁻¹⁷ J
+                      2) U = 12.5 V 截止 ⇒ v = 2.10×10⁶ m/s
+                      3) 同 v₀ ⇒ tanθe/tanθH = m_H/m_e；同 Ek ⇒ 之比 = 1
+                      4) 一价氢／一价氦／二价氦同加速场 ⇒ 不分离
+                      5) E = 5000 N/C、l = 6 cm、U₀ = 1000 V ⇒ v = 1.9×10⁷ m/s、8.53°
+                      6) 质子 l = 4.0 m、v = 1.0×10⁷ m/s ⇒ E = 1.30×10⁵ N/C
+     模型边界（环节⑤ C1）：教材只写"把两板间的电场看作匀强电场"，
+       忽略边缘效应会得到"能量不守恒"的似是而非结果 ⇒ 方法论：
+       【当计算违反能量守恒时，先怀疑模型，而不是先怀疑能量守恒】
+    ===================================================================== */
+(function (global) {
+  'use strict';
+
+  /* ---------- 常量（2019 SI 定义值，与教材 1.60×10⁻¹⁹ 一致到三位） ---------- */
+  var E_CHG = 1.602176634e-19;      // 元电荷 e (C)
+  var M_E = 9.1093837015e-31;       // 电子质量 (kg)（教材/教参取 9.1×10⁻³¹）
+  var M_P = 1.67262192369e-27;      // 质子质量 (kg)（教材取 1.67×10⁻²⁷）
+  var M_HE = 6.6446573357e-27;      // 氦离子质量 (kg)（α 粒子核，≈4u）
+  var G0 = 9.8;                     // 重力加速度 (m/s²)
+  var K_E = 8.9875517923e9;         // 静电力常量 k (N·m²/C²)
+
+  /* ---------- 粒子表（微观粒子：重力通常可忽略；油滴：必须比较） ---------- */
+  var PART = {
+    e: { key: 'e', name: '电子', sym: 'e⁻', q: E_CHG, m: M_E, neg: true, micro: true },
+    p: { key: 'p', name: '质子', sym: 'p', q: E_CHG, m: M_P, neg: false, micro: true },
+    h1: { key: 'h1', name: '一价氢离子', sym: 'H⁺', q: E_CHG, m: M_P, neg: false, micro: true },
+    he1: { key: 'he1', name: '一价氦离子', sym: 'He⁺', q: E_CHG, m: M_HE, neg: false, micro: true },
+    he2: { key: 'he2', name: '二价氦离子', sym: 'He²⁺', q: 2 * E_CHG, m: M_HE, neg: false, micro: true },
+    oil: { key: 'oil', name: '带电油滴', sym: '油滴', q: 4.8e-19, m: 3.0e-15, neg: true, micro: false }
+  };
+  var PART_KEYS = ['e', 'p', 'h1', 'he1', 'he2', 'oil'];
+  var MIX_KEYS = ['h1', 'he1', 'he2'];   // 教材练习第 4 题的三种粒子
+
+  /* ---------- 装置默认值（改这里一处，渲染/步骤/外壳共用） ---------- */
+  /* 教参 P58 教学片段图 10-10：平行金属板恒定电压 U，+q 由静止从 A 板到 B 板 */
+  var ACC_U = 90, ACC_D = 0.062;          // 90 V / 6.2 cm（与教材练习第 1 题同量级）
+
+  /* 教材例题2 装置（P46） */
+  var EX_L = 0.060, EX_D = 0.020, EX_U = 200, EX_V0 = 3.0e7;   // 6.0 cm / 2 cm / 200 V / 3.0×10⁷ m/s
+
+  /* 示波管（教材 P47 图 10.5-4）：偏转板后还要飞一段才打到荧光屏 */
+  var TB_L = 0.030, TB_D = 0.010, TB_LSCREEN = 0.12;   // 板长 3 cm / 间距 1 cm / 板端到屏 12 cm
+  var TB_U0 = 1000;                                     // 电子枪加速电压
+  var TB_UYMAX = 120, TB_UXMAX = 200;                   // 偏转电压上限（保证不打到板上）
+
+  /* 教材练习第 6 题：质子疗法 */
+  var PR_L = 4.0, PR_V = 1.0e7;
+
+  /* 非匀强电场（环节② 官方第（7）问的演示）：点电荷场，E = kQ/r² */
+  var NU_Q = 3.0e-10, NU_R0 = 0.050, NU_R1 = 0.005;
+
+  /* ================= 加速 ================= */
+  /** 牛顿第二定律通道：a = qU/(md) */
+  function accelA(U, d, q, m) { return q * U / (m * d); }
+  /** 牛顿第二定律通道：v = √(2ad) */
+  function accelVNewton(U, d, q, m) { return Math.sqrt(2 * accelA(U, d, q, m) * d); }
+  /** 功与能量通道：v = √(2qU/m) */
+  function accelVEnergy(U, q, m) { return Math.sqrt(2 * q * U / m); }
+  /** 静电力做的功 / 动能增量 */
+  function accelKE(U, q) { return q * U; }
+  /** 从静止匀加速走完 d 所用时间：t = 2d/v */
+  function accelTime(U, d, q, m) { return 2 * d / accelVEnergy(U, q, m); }
+  /** 场强 E = U/d */
+  function fieldE(U, d) { return U / d; }
+
+  /** 重力判据：qE / (mg)。≫1 ⇒ 可忽略重力（微观粒子）；≈1 ⇒ 必须比较 */
+  function gravityRatio(pk, Efield) {
+    var p = PART[pk];
+    return (p.q * Efield) / (p.m * G0);
+  }
+  /** 平衡场强（油滴悬浮）：E = mg/q */
+  function balanceE(pk) { var p = PART[pk]; return p.m * G0 / p.q; }
+  /** 重力判据结论 */
+  function gravityVerdict(pk, Efield) {
+    var r = gravityRatio(pk, Efield);
+    if (r >= 100) { return 'ignore'; }      // 静电力远大于重力 ⇒ 可忽略
+    if (r <= 0.01) { return 'gravity'; }    // 重力远大于静电力 ⇒ 重力是主角
+    return 'compare';                       // 同量级 ⇒ 必须逐个比较
+  }
+
+  /* ================= 例题1：多级圆筒直线加速器 ================= */
+  /** 电子进入第 n 个圆筒后的速度：v_n = √(2neu/m) */
+  function cylV(n, u, q, m) { return Math.sqrt(2 * n * q * u / m); }
+  /** 第 n 个圆筒的长度：l_n = v_n·T/2 */
+  function cylLen(n, T, u, q, m) { return cylV(n, u, q, m) * T / 2; }
+  /** 第 n 个圆筒长度与第 1 个之比 = √n（教材结论） */
+  function cylRatio(n) { return Math.sqrt(n); }
+  /** 由"踏准节奏"反推周期：T = 2l_n/v_n */
+  function cylT(l, n, u, q, m) { return 2 * l / cylV(n, u, q, m); }
+
+  /* ================= 偏转（类平抛） ================= */
+  /** 垂直板面方向的加速度 a = qU/(md) */
+  function deflA(U, d, q, m) { return q * U / (m * d); }
+  /** 穿越极板的飞行时间 t = l/v₀ */
+  function deflT(l, v0) { return l / v0; }
+  /** 侧向偏移 y = ½at² = qUl²/(2mdv₀²) */
+  function deflY(U, d, l, v0, q, m) {
+    var t = deflT(l, v0);
+    return 0.5 * deflA(U, d, q, m) * t * t;
+  }
+  /** 离开电场时的侧向分速度 v⊥ = at = qUl/(mdv₀) */
+  function deflVy(U, d, l, v0, q, m) { return deflA(U, d, q, m) * deflT(l, v0); }
+  /** 偏转角的正切 tanθ = v⊥/v₀ = qUl/(mdv₀²) */
+  function deflTan(U, d, l, v0, q, m) { return deflVy(U, d, l, v0, q, m) / v0; }
+  /** 离开电场时的速度大小 v = √(v₀² + v⊥²) */
+  function deflV(U, d, l, v0, q, m) {
+    var vy = deflVy(U, d, l, v0, q, m);
+    return Math.sqrt(v0 * v0 + vy * vy);
+  }
+  /** 由静止经 U₀ 加速得到的入射速度 v₀ = √(2qU₀/m) */
+  function deflV0(U0, q, m) { return Math.sqrt(2 * q * U0 / m); }
+  /** 装置量写法：y = Ul²/(4U₀d)（与 q、m 无关） */
+  function deflY0(U, d, l, U0) { return U * l * l / (4 * U0 * d); }
+  /** 装置量写法：tanθ = Ul/(2U₀d)（与 q、m 无关） */
+  function deflTan0(U, d, l, U0) { return U * l / (2 * U0 * d); }
+  /** 静电力在偏转电场中做的功 W = qE·y = q(U/d)y */
+  function deflWork(U, d, y, q) { return q * (U / d) * y; }
+  /** 全过程动能定理反解末速度：v = √(v₀² + 2qEy/m) */
+  function deflVenergy(U, d, y, v0, q, m) { return Math.sqrt(v0 * v0 + 2 * deflWork(U, d, y, q) / m); }
+
+  /** 出界临界入射速度（恰有 y = d/2）：v₀min = (l/d)·√(qU/m) */
+  function deflV0Limit(U, d, l, q, m) { return (l / d) * Math.sqrt(q * U / m); }
+  /** 出界临界偏转电压（y = d/2）：U_max = md²v₀²/(ql²) */
+  function deflULimit(d, l, v0, q, m) { return m * d * d * v0 * v0 / (q * l * l); }
+  /** 是否打在极板上 */
+  function deflHit(U, d, l, v0, q, m) { return deflY(U, d, l, v0, q, m) > d / 2; }
+  /** 粒子束是否分离（教材练习第 4 题：同一加速场 + 同一偏转场 ⇒ 不分离） */
+  function mixSame(U0, U, l, d) {
+    var tan = deflTan0(U, d, l, U0), y = deflY0(U, d, l, U0);
+    return { tan: tan, y: y, v0: MIX_KEYS.map(function (k) { return deflV0(U0, PART[k].q, PART[k].m); }) };
+  }
+
+  /* ================= 示波管 ================= */
+  /** 屏上位移 Y = y + L·tanθ = y(1 + 2L/l) */
+  function tubeY(U, U0, l, d, L) {
+    var y = deflY0(U, d, l, U0);
+    return y + L * deflTan0(U, d, l, U0);
+  }
+  /** 另一种写法：Y = Ul(l + 2L)/(4U₀d) */
+  function tubeY2(U, U0, l, d, L) { return U * l * (l + 2 * L) / (4 * U0 * d); }
+  /** 偏转灵敏度的倒数：每 1 V 偏转电压使亮斑移动多少（m/V） */
+  function tubeSens(U0, l, d, L) { return l * (l + 2 * L) / (4 * U0 * d); }
+
+  /* ================= 非匀强电场（官方第 7 问的演示） ================= */
+  /** 点电荷场中从 r₀ 由静止到 r 的动能（能量通道，一步到位） */
+  function nonUniKE(Q, q, r0, r) { return q * K_E * Q * (1 / r - 1 / r0) * -1; }
+  /** 能量通道给出的末速度 */
+  function nonUniV(Q, q, m, r0, r) { return Math.sqrt(Math.max(0, 2 * nonUniKE(Q, q, r0, r) / m)); }
+  /**
+   * 牛顿第二定律通道：必须一段一段数值积分（因为 a 一直在变）
+   * 返回 { samples:[{r,v,t}], vEnd, vEnergy, relErr }
+   * 采用复合中点法积分 ∫a dr（对一维保守力场足够精确），并累积时间。
+   */
+  function nonUniPath(Q, q, m, r0, r1, N) {
+    N = N || 20000;
+    var samples = [], v = 0, t = 0, r = r0;
+    var acc = function (rr) { return q * K_E * Q / (m * rr * rr); };   // 径向分量（正 = 背离原点）
+    samples.push({ r: r, v: 0, t: 0 });
+    for (var i = 1; i <= N; i++) {
+      var rNew = r0 + (r1 - r0) * (i / N);
+      var dr = rNew - r;
+      var aMid = acc(r + dr / 2);
+      var vNew = Math.sqrt(Math.max(0, v * v + 2 * aMid * dr));
+      var vAvg = 0.5 * (v + vNew);
+      if (vAvg > 1e-12) { t += Math.abs(dr) / vAvg; }
+      v = vNew; r = rNew;
+      samples.push({ r: r, v: v, t: t });
+    }
+    var vEnergy = nonUniV(Q, q, m, r0, r1);
+    return {
+      samples: samples, vEnd: v, vEnergy: vEnergy, tEnd: t,
+      relErr: Math.abs(v - vEnergy) / vEnergy
+    };
+  }
+
+  /* ================= 应用：质子疗法（教材练习第 6 题） ================= */
+  /** 匀强加速电场场强 E = mv²/(2ql) */
+  function beamE(v, q, m, len) { return m * v * v / (2 * q * len); }
+  /** 由场强反解末速度 */
+  function beamV(Efield, q, m, len) { return Math.sqrt(2 * q * Efield * len / m); }
+  /** 加速后动能（焦耳 / 电子伏） */
+  function beamKE(v, m) { return 0.5 * m * v * v; }
+  function eV(joule) { return joule / E_CHG; }
+
+  /* ================= 自检（科学性由断言锁住） ================= */
+  function runSelfTest() {
+    var checks = 0, fails = [];
+    function ok(cond, msg) { checks++; if (!cond) { fails.push(msg); } }
+    function near(a, b, tag, tol) {
+      checks++;
+      var e = Math.abs(a - b), t = (tol === undefined) ? 1e-9 : tol;
+      if (!(e <= t)) { fails.push(tag + '：' + a + ' ≠ ' + b + '（误差 ' + e + '）'); }
+    }
+    function rel(a, b, tag, tol) {
+      checks++;
+      var d = Math.abs(a - b) / Math.max(1e-300, Math.abs(b));
+      if (!(d <= (tol === undefined ? 1e-12 : tol))) { fails.push(tag + '：相对误差 ' + d); }
+    }
+    var i, j;
+
+    /* ①两把钥匙给出同一个 v（牛顿第二定律通道 ≡ 动能定理通道） */
+    var Us = [12.5, 90, 200, 1000, 5000], Ds = [0.005, 0.02, 0.062, 0.2];
+    var PK = ['e', 'p', 'he1', 'he2', 'oil'];
+    for (i = 0; i < Us.length; i++) {
+      for (j = 0; j < Ds.length; j++) {
+        for (var k = 0; k < PK.length; k++) {
+          var p = PART[PK[k]];
+          rel(accelVNewton(Us[i], Ds[j], p.q, p.m), accelVEnergy(Us[i], p.q, p.m), '①两条通道同一个 v', 1e-12);
+        }
+      }
+    }
+    /* 动能定理：W = qU = ΔEk */
+    rel(accelKE(90, 2 * E_CHG), 2.88e-17, '①教材练习1 二价氧离子 Ek = qU', 2e-3);
+    rel(accelKE(12.5, E_CHG), 0.5 * M_E * Math.pow(2.10e6, 2), '①教材练习2 截止电压 ⇒ 最大初动能', 5e-3);
+
+    /* ②教材例题2：y = 0.35 cm、θ = 6.7°（印刷值，容差按有效数字给） */
+    var y2 = deflY(EX_U, EX_D, EX_L, EX_V0, E_CHG, M_E);
+    var t2 = Math.atan(deflTan(EX_U, EX_D, EX_L, EX_V0, E_CHG, M_E)) * 180 / Math.PI;
+    rel(y2, 0.35e-2, '②例题2 y = 0.35 cm', 1e-2);
+    rel(t2, 6.7, '②例题2 θ = 6.7°', 1e-2);
+    rel(deflTan(EX_U, EX_D, EX_L, EX_V0, E_CHG, M_E), 0.11709, '②例题2 tanθ', 5e-3);
+    /* 装置量写法与粒子写法必须一致 */
+    var U0ex = 0.5 * M_E * EX_V0 * EX_V0 / E_CHG;
+    rel(deflY0(EX_U, EX_D, EX_L, U0ex), y2, '②y = Ul²/(4U₀d) 与粒子写法一致', 1e-12);
+    rel(deflTan0(EX_U, EX_D, EX_L, U0ex), deflTan(EX_U, EX_D, EX_L, EX_V0, E_CHG, M_E), '②tanθ 两种写法一致', 1e-12);
+
+    /* ③全过程动能定理：½mv² − ½mv₀² = qE·y（与分速度合成完全一致） */
+    var vEnd = deflV(EX_U, EX_D, EX_L, EX_V0, E_CHG, M_E);
+    var vEng = deflVenergy(EX_U, EX_D, y2, EX_V0, E_CHG, M_E);
+    rel(vEng, vEnd, '③动能定理求末速度 ≡ 分速度合成', 1e-12);
+    rel(0.5 * M_E * vEnd * vEnd - 0.5 * M_E * EX_V0 * EX_V0, deflWork(EX_U, EX_D, y2, E_CHG), '③ΔEk = qEy', 1e-9);
+    rel(vEnd, 3.0205e7, '③例题2 末速度量级', 1e-3);
+
+    /* ④偏转只由装置决定：一价氢／一价氦／二价氦 ⇒ 不分离（教材练习第 4 题） */
+    var U0m = 1000, Um = 200;
+    var mix = mixSame(U0m, Um, EX_L, EX_D);
+    for (i = 0; i < MIX_KEYS.length; i++) {
+      var mp = PART[MIX_KEYS[i]];
+      var yi = deflY(Um, EX_D, EX_L, mix.v0[i], mp.q, mp.m);
+      rel(yi, mix.y, '④混合物不分离 y（' + mp.name + '）', 1e-12);
+      rel(deflTan(Um, EX_D, EX_L, mix.v0[i], mp.q, mp.m), mix.tan, '④混合物不分离 tanθ（' + mp.name + '）', 1e-12);
+    }
+    /* 但它们的入射速度确实不同（否则这条结论没意义） */
+    var vmax = Math.max(mix.v0[0], mix.v0[1], mix.v0[2]);
+    var vmin = Math.min(mix.v0[0], mix.v0[1], mix.v0[2]);
+    ok(vmax / vmin - 1 > 0.3, '④三种粒子的 v₀ 必须互不相同（最大相差 ' + ((vmax / vmin - 1) * 100).toFixed(0) + '%）');
+    /* 练习3（2）：同初动能 ⇒ tanθ 之比 = 1（tanθ ∝ q/(mv₀²) = q/(2Ek)） */
+    var vEe = 3.0e6, vEH = vEe * Math.sqrt(M_E / M_P);
+    rel(0.5 * M_E * vEe * vEe, 0.5 * M_P * vEH * vEH, '④同初动能条件自检', 1e-12);
+    rel(deflTan(EX_U, EX_D, EX_L, vEe, E_CHG, M_E), deflTan(EX_U, EX_D, EX_L, vEH, E_CHG, M_P), '④同初动能 tanθ 之比 = 1', 1e-12);
+    /* 练习3（1）：同初速度 ⇒ 之比 = m_H/m_e */
+    rel(deflTan(EX_U, EX_D, EX_L, vEe, E_CHG, M_E) / deflTan(EX_U, EX_D, EX_L, vEe, E_CHG, M_P),
+      M_P / M_E, '④同初速度 ⇒ tanθe/tanθH = m_H/m_e', 1e-12);
+
+    /* ⑤教材练习第 5 题：v = 1.9×10⁷ m/s、θ = 8.53° */
+    var v5 = deflV0(1000, E_CHG, M_E);
+    var tan5 = 5000 * 0.06 / (2 * 1000);
+    var t5 = Math.atan(tan5) * 180 / Math.PI;
+    rel(v5 * Math.sqrt(1 + tan5 * tan5), 1.9e7, '⑤练习5 末速度', 5e-3);
+    rel(t5, 8.53, '⑤练习5 θ = 8.53°', 1e-3);
+    /* 与 deflTan0 的写法必须一致 */
+    rel(deflTan0(5000 * 0.06, 0.06, 0.06, 1000), tan5, '⑤练习5 tanθ = El/(2U₀)', 1e-12);
+
+    /* ⑥教材练习第 6 题：质子疗法 E = 1.30×10⁵ N/C */
+    var Ep = beamE(PR_V, E_CHG, M_P, PR_L);
+    rel(Ep, 1.30e5, '⑥质子疗法 E = 1.30×10⁵ N/C', 1e-2);
+    rel(beamV(Ep, E_CHG, M_P, PR_L), PR_V, '⑥由 E 反解末速度往返一致', 1e-12);
+    rel(beamKE(PR_V, M_P), E_CHG * Ep * PR_L, '⑥Ek = qEl', 1e-12);
+
+    /* ⑦例题1 多级圆筒：l_n ∝ √n，且 v_n ∝ √n */
+    var T = 1.0e-7, u = 500;
+    for (i = 1; i <= 8; i++) {
+      rel(cylLen(i, T, u, E_CHG, M_E) / cylLen(1, T, u, E_CHG, M_E), Math.sqrt(i), '⑦l_n ∝ √n (n=' + i + ')', 1e-12);
+      rel(cylV(i, u, E_CHG, M_E) / cylV(1, u, E_CHG, M_E), Math.sqrt(i), '⑦v_n ∝ √n (n=' + i + ')', 1e-12);
+    }
+    /* 踏准节奏：T = 2l_n/v_n 往返一致 */
+    rel(cylT(cylLen(5, T, u, E_CHG, M_E), 5, u, E_CHG, M_E), T, '⑦踏准节奏 T 往返一致', 1e-12);
+    /* 圆筒内不受力 ⇒ 匀速（用"导体内 E = 0"表达） */
+    ok(fieldE(0, 0.05) === 0, '⑦圆筒内部场强为 0');
+
+    /* ⑧出界判据：临界点处 y 恰好等于 d/2 */
+    var vLim = deflV0Limit(EX_U, EX_D, EX_L, E_CHG, M_E);
+    rel(deflY(EX_U, EX_D, EX_L, vLim, E_CHG, M_E), EX_D / 2, '⑧临界速度处 y = d/2', 1e-12);
+    var uLim = deflULimit(EX_D, EX_L, EX_V0, E_CHG, M_E);
+    rel(deflY(uLim, EX_D, EX_L, EX_V0, E_CHG, M_E), EX_D / 2, '⑧临界电压处 y = d/2', 1e-12);
+    ok(deflHit(EX_U, EX_D, EX_L, EX_V0, E_CHG, M_E) === false, '⑧例题2 不打在极板上');
+    ok(deflHit(uLim * 1.05, EX_D, EX_L, EX_V0, E_CHG, M_E) === true, '⑧超过临界电压会打在极板上');
+    /* 单调性：y 随 U 单调增（21 点） */
+    var prev = -1, mono = true;
+    for (i = 0; i <= 20; i++) {
+      var yy = deflY(i * 15, EX_D, EX_L, EX_V0, E_CHG, M_E);
+      checks++;
+      if (!(yy > prev - 1e-18)) { mono = false; }
+      prev = yy;
+    }
+    ok(mono, '⑧y 随 U 单调增（21 点）');
+
+    /* ⑨示波管：Y = y + L·tanθ 与 Y = Ul(l+2L)/(4U₀d) 一致；Y ∝ U */
+    for (i = 0; i <= 10; i++) {
+      var UUi = i * 12;
+      rel(tubeY(UUi, TB_U0, TB_L, TB_D, TB_LSCREEN), tubeY2(UUi, TB_U0, TB_L, TB_D, TB_LSCREEN), '⑨两种写法一致', 1e-12);
+    }
+    rel(tubeY(2 * 30, TB_U0, TB_L, TB_D, TB_LSCREEN) / tubeY(30, TB_U0, TB_L, TB_D, TB_LSCREEN), 2, '⑨Y ∝ U', 1e-12);
+    ok(tubeY(TB_UYMAX, TB_U0, TB_L, TB_D, TB_LSCREEN) > 0, '⑨示波管偏转量为正');
+
+    /* ⑩重力判据：电子在 10⁴ N/C 中 qE/mg ≈ 1.8×10¹⁴；油滴必须比较 */
+    ok(gravityRatio('e', 1e4) > 1e12, '⑩电子重力可忽略（比值 > 10¹²）');
+    ok(gravityVerdict('e', 1e4) === 'ignore', '⑩电子 ⇒ 可忽略重力');
+    rel(gravityRatio('oil', balanceE('oil')), 1, '⑩平衡场强处 qE = mg', 1e-12);
+    ok(gravityVerdict('oil', balanceE('oil')) === 'compare', '⑩油滴 ⇒ 必须比较');
+
+    /* ⑪非匀强电场：能量通道一步到位，牛顿通道必须数值积分 —— 两者必须吻合 */
+    var np = nonUniPath(NU_Q, -E_CHG, M_E, NU_R0, NU_R1, 20000);
+    ok(np.relErr < 5e-3, '⑪非匀强电场 数值积分 v 与能量公式 v 相对误差 < 0.5%（实测 ' + np.relErr.toFixed(5) + '）');
+    ok(np.vEnergy > 0, '⑪非匀强电场末速度为正');
+    ok(np.samples[np.samples.length - 1].v > np.samples[0].v, '⑪非匀强电场中速度在增大');
+    /* 越靠近点电荷，加速度越大（E ∝ 1/r²） */
+    var a0 = K_E * NU_Q / (NU_R0 * NU_R0), a1 = K_E * NU_Q / (NU_R1 * NU_R1);
+    ok(a1 / a0 > 90, '⑪靠近点电荷处场强显著变大');
+
+    return { pass: fails.length === 0, cases: checks, failed: fails.slice(0, 6) };
+  }
+
+  /* ---------- 导出 ---------- */
+  var api = {
+    E_CHG: E_CHG, M_E: M_E, M_P: M_P, M_HE: M_HE, G0: G0, K_E: K_E,
+    PART: PART, PART_KEYS: PART_KEYS, MIX_KEYS: MIX_KEYS,
+    ACC_U: ACC_U, ACC_D: ACC_D,
+    EX_L: EX_L, EX_D: EX_D, EX_U: EX_U, EX_V0: EX_V0,
+    TB_L: TB_L, TB_D: TB_D, TB_LSCREEN: TB_LSCREEN, TB_U0: TB_U0,
+    TB_UYMAX: TB_UYMAX, TB_UXMAX: TB_UXMAX,
+    PR_L: PR_L, PR_V: PR_V, NU_Q: NU_Q, NU_R0: NU_R0, NU_R1: NU_R1,
+
+    accelA: accelA, accelVNewton: accelVNewton, accelVEnergy: accelVEnergy,
+    accelKE: accelKE, accelTime: accelTime, fieldE: fieldE,
+    gravityRatio: gravityRatio, gravityVerdict: gravityVerdict, balanceE: balanceE,
+
+    cylV: cylV, cylLen: cylLen, cylRatio: cylRatio, cylT: cylT,
+
+    deflA: deflA, deflT: deflT, deflY: deflY, deflVy: deflVy, deflTan: deflTan,
+    deflV: deflV, deflV0: deflV0, deflY0: deflY0, deflTan0: deflTan0,
+    deflWork: deflWork, deflVenergy: deflVenergy,
+    deflV0Limit: deflV0Limit, deflULimit: deflULimit, deflHit: deflHit, mixSame: mixSame,
+
+    tubeY: tubeY, tubeY2: tubeY2, tubeSens: tubeSens,
+
+    nonUniKE: nonUniKE, nonUniV: nonUniV, nonUniPath: nonUniPath,
+
+    beamE: beamE, beamV: beamV, beamKE: beamKE, eV: eV,
+
+    runSelfTest: runSelfTest
+  };
+  global.VizPhys = api;
+  if (typeof module !== 'undefined' && module.exports) { module.exports = api; } else {
+    try {
+      if (typeof console !== 'undefined' && global.document === undefined) {
+        var r = runSelfTest();
+        console.log('[自检]', r.pass ? '通过' : '失败', r.cases + ' 条用例', r.failed);
+      }
+    } catch (e) { }
+  }
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* =====================================================================
+   viz_ce_render.js —— 绘制层（10.5 带电粒子在电场中的运动）
+
+   视觉语言：原版 Manim 基调 —— 纯黑底、白线为主、Manim 官方色常量
+     黄  #FFFF00 = 结论色（本课主角量：v、y、tanθ、屏上位移 Y）
+     红  #FC6255 = 正电极 / 正电荷（"+"极板、正离子）
+     蓝  #58C4DD = 负电极 / 负电荷（"−"极板、电子）
+     绿  #83C167 = 第二条通道（牛顿运动定律通道 / 分运动的对照）
+     紫  #9A72AC = 辅助构造（分解的投影线、尺寸线、边缘场）
+     金  #F0AC5F = 能量条 / 读数次强调
+     白 = 几何（极板、轨迹、坐标轴、器件轮廓）｜ 灰 = 参考、不可动的辅助线
+   同屏彩色元素一律 ≤ 3 种。
+
+   场景（st.scene）：
+     'intro'      医用电子直线加速器（情境入口，教材问题栏）
+     'accel'      平行板加速（教材图10-10）：两条通道、重力判据、能量条
+     'cyl'        例题1 多级圆筒直线加速器与交变电压（踏准节奏）
+     'nonuni'     非匀强电场：能量通道一步到位，牛顿通道必须分段积分
+     'deflect'    偏转（教材图10.5-2／例题2）：分解、y、tanθ、出界、粒子无关
+     'analogy'    平抛 ↔ 电偏转 的两块并排对照
+     'tube'       示波管（教材图10.5-4 甲乙）：侧视结构 + 荧光屏正视图
+     'edge'       模型边界：匀强电场的理想化与边缘效应（环节⑤）
+     'apps'       质子疗法 / 直线加速器：求场强 E（教材练习第 6 题）
+     'chain'      判断链四格表（环节⑦ 收束）
+     'conclusion' 三句话带走
+   ===================================================================== */
+(function (global) {
+  'use strict';
+
+  var P = global.VizPhys;
+
+  var THEME = {
+    bg: '#000000',
+    white: '#FFFFFF', grey: '#888888',
+    red: '#FC6255', blue: '#58C4DD',
+    yellow: '#FFFF00', gold: '#F0AC5F', green: '#83C167', purple: '#9A72AC',
+    grid: 'rgba(255,255,255,0.10)',
+    soft: 'rgba(255,255,255,0.30)',
+    soft2: 'rgba(255,255,255,0.16)',
+    ghost: 'rgba(136,136,136,0.55)',
+    redFill: 'rgba(252,98,85,0.20)',
+    blueFill: 'rgba(88,196,221,0.20)',
+    goldFill: 'rgba(240,172,95,0.40)',
+    goldSoft: 'rgba(240,172,95,0.16)',
+    greenFill: 'rgba(131,193,103,0.22)',
+    yellowSoft: 'rgba(255,255,0,0.12)',
+    purpleSoft: 'rgba(154,114,172,0.35)',
+    greyFill: 'rgba(136,136,136,0.16)'
+  };
+  var GRID = 'rgba(255,255,255,0.10)';
+
+  var FONT = '"Microsoft YaHei","PingFang SC","Noto Sans SC","WenQuanYi Zen Hei",sans-serif';
+
+  function fs(size, weight) { return (weight ? weight + ' ' : '') + size + 'px ' + FONT; }
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+  function num(v, d) { return (v < 0 ? '−' : '') + Math.abs(v).toFixed(d === undefined ? 2 : d); }
+
+  /* ---------- 数字格式化 ---------- */
+  var SUP = { '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+  function sup(n) { return String(n).split('').map(function (c) { return SUP[c] || c; }).join(''); }
+  function sci(x, d) {
+    d = (d === undefined) ? 2 : d;
+    if (Math.abs(x) < 1e-300) { return '0'; }
+    var s = x < 0 ? '−' : '', a = Math.abs(x);
+    var e = Math.floor(Math.log10(a) + 1e-12), m = a / Math.pow(10, e);
+    if (m >= 10) { m /= 10; e++; }
+    if (m < 1) { m *= 10; e--; }
+    return s + m.toFixed(d) + '×10' + sup(e);
+  }
+  /** 速度 */
+  function vfmt(v) {
+    var a = Math.abs(v);
+    if (a >= 1e4) { return sci(v, 2) + ' m/s'; }
+    if (a >= 1) { return num(v, a < 10 ? 3 : 1) + ' m/s'; }
+    return sci(v, 2) + ' m/s';
+  }
+  /** 场强 */
+  function efmt(E) {
+    var a = Math.abs(E);
+    if (a >= 1e4) { return sci(E, 2) + ' N/C'; }
+    if (a >= 1) { return num(E, a < 100 ? 1 : 0) + ' N/C'; }
+    return sci(E, 2) + ' N/C';
+  }
+  /** 电压 */
+  function ufmt(U) {
+    var a = Math.abs(U);
+    if (a >= 1000) { return num(U / 1000, a < 1e4 ? 2 : 1) + ' kV'; }
+    if (a >= 1) { return num(U, a < 10 ? 2 : (a < 100 ? 1 : 0)) + ' V'; }
+    if (a >= 1e-3) { return num(U * 1e3, 2) + ' mV'; }
+    return sci(U, 2) + ' V';
+  }
+  /** 长度（米 → cm / mm） */
+  function lfmt(L) {
+    var a = Math.abs(L);
+    if (a >= 0.01) { return num(L * 100, a * 100 < 10 ? 3 : 2) + ' cm'; }
+    if (a >= 1e-5) { return num(L * 1000, a * 1000 < 10 ? 3 : 2) + ' mm'; }
+    return sci(L, 2) + ' m';
+  }
+  /** 角度 */
+  function afmt(rad) { return num(rad * 180 / Math.PI, 2) + '°'; }
+  /** 能量 */
+  function kefmt(J) {
+    var a = Math.abs(J);
+    if (a >= 1e-15) { return sci(J, 2) + ' J'; }
+    return sci(J, 3) + ' J';
+  }
+  function evfmt(J) { return num(P.eV(J), P.eV(J) < 100 ? 1 : 0) + ' eV'; }
+  /** 质量 */
+  function mfmt(m) {
+    if (m < 1e-29) { return '9.11×10⁻³¹ kg'; }
+    if (m < 1e-26) { return '1.67×10⁻²⁷ kg'; }
+    return sci(m, 2) + ' kg';
+  }
+
+  /* ---------- 画布 ---------- */
+  function fitCanvas(cv) {
+    var dpr = Math.min(2, global.devicePixelRatio || 1);
+    var r = cv.getBoundingClientRect();
+    var W = Math.max(340, Math.round(r.width)), H = Math.max(260, Math.round(r.height));
+    if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) {
+      cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    }
+    var ctx = cv.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { ctx: ctx, W: W, H: H };
+  }
+
+  /* ---------- 基础图形 ---------- */
+  function seg(ctx, x1, y1, x2, y2) { ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); }
+  function stroke(ctx, color, lw) { ctx.strokeStyle = color; ctx.lineWidth = lw === undefined ? 1.4 : lw; }
+  function dash(ctx, pat) { ctx.setLineDash(pat || [7, 5]); }
+  function nodash(ctx) { ctx.setLineDash([]); }
+  function text(ctx, s, x, y, o) {
+    o = o || {};
+    ctx.font = fs(o.size || 12.5, o.weight);
+    ctx.fillStyle = o.color || THEME.white;
+    ctx.textAlign = o.align || 'left';
+    ctx.textBaseline = o.baseline || 'middle';
+    var a = ctx.globalAlpha;
+    if (o.alpha !== undefined) { ctx.globalAlpha = a * o.alpha; }
+    ctx.fillText(s, x, y);
+    ctx.globalAlpha = a;
+  }
+  function dot(ctx, x, y, r, color, glow) {
+    if (glow) { ctx.shadowColor = color; ctx.shadowBlur = 9; }
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = color; ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+  function circle(ctx, x, y, r, color, lw) {
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+    stroke(ctx, color, lw === undefined ? 1.4 : lw); ctx.stroke();
+  }
+  function fillCircle(ctx, x, y, r, color) {
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
+  }
+  function arrow(ctx, x1, y1, x2, y2, color, lw, head) {
+    lw = lw === undefined ? 2.4 : lw;
+    head = head === undefined ? 7 : head;
+    var dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy);
+    if (L < 0.5) { return; }
+    var ux = dx / L, uy = dy / L, bx = x2 - ux * head, by = y2 - uy * head;
+    stroke(ctx, color, lw); seg(ctx, x1, y1, bx, by);
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(bx - uy * head * 0.5, by + ux * head * 0.5);
+    ctx.lineTo(bx + uy * head * 0.5, by - ux * head * 0.5);
+    ctx.closePath(); ctx.fillStyle = color; ctx.fill();
+  }
+  /** 横向尺寸线 */
+  function dimH(ctx, y, x1, x2, txt, color) {
+    color = color || THEME.grey;
+    stroke(ctx, color, 1);
+    seg(ctx, x1, y, x2, y);
+    arrow(ctx, x1 + 8, y, x1, y, color, 1, 5);
+    arrow(ctx, x2 - 8, y, x2, y, color, 1, 5);
+    text(ctx, txt, (x1 + x2) / 2, y - 9, { size: 12, color: color, align: 'center' });
+  }
+  /** 带标题的浅框（画布内的分区） */
+  function box(ctx, x, y, w, h, title, color) {
+    stroke(ctx, color || THEME.soft2, 1.4);
+    ctx.strokeRect(x, y, w, h);
+    if (title) { text(ctx, title, x + 8, y + 12, { size: 12, color: color || THEME.grey, weight: 600 }); }
+  }
+  /** 极板（粗线 + 电荷符号） */
+  function plateH(ctx, x1, x2, y, sign, color, marks) {
+    stroke(ctx, color, 5); seg(ctx, x1, y, x2, y);
+    if (marks) {
+      var n = Math.max(3, Math.round((x2 - x1) / 46));
+      for (var i = 0; i < n; i++) {
+        var x = x1 + (i + 0.5) * (x2 - x1) / n;
+        text(ctx, sign, x, y + (sign === '+' ? -11 : 11), { size: 12, color: color, align: 'center', weight: 600 });
+      }
+    }
+  }
+  function plateV(ctx, y1, y2, x, sign, color, marks) {
+    stroke(ctx, color, 5); seg(ctx, x, y1, x, y2);
+    if (marks) {
+      var n = Math.max(3, Math.round((y2 - y1) / 46));
+      for (var i = 0; i < n; i++) {
+        var y = y1 + (i + 0.5) * (y2 - y1) / n;
+        text(ctx, sign, x + (sign === '+' ? -11 : 11), y, { size: 12, color: color, align: 'center', weight: 600 });
+      }
+    }
+  }
+  /* 电场线（水平，从 + 指向 −）
+     坐标取整：1 px 虚线落在整数像素列/行上，既不糊、也让逐帧像素指纹稳定 */
+  function fieldLinesH(ctx, x1, x2, ys, color) {
+    x1 = Math.round(x1); x2 = Math.round(x2);
+    for (var i = 0; i < ys.length; i++) {
+      var yy = Math.round(ys[i]);
+      stroke(ctx, color, 1); dash(ctx, [6, 6]);
+      seg(ctx, x1 + 0.5, yy + 0.5, x2 + 0.5, yy + 0.5); nodash(ctx);
+      arrow(ctx, (x1 + x2) / 2 - 12, yy, (x1 + x2) / 2 + 12, yy, color, 1, 5);
+    }
+  }
+  function fieldLinesV(ctx, y1, y2, xs, color) {
+    y1 = Math.round(y1); y2 = Math.round(y2);
+    for (var i = 0; i < xs.length; i++) {
+      var xx = Math.round(xs[i]);
+      stroke(ctx, color, 1); dash(ctx, [6, 6]);
+      seg(ctx, xx + 0.5, y1 + 0.5, xx + 0.5, y2 + 0.5); nodash(ctx);
+      arrow(ctx, xx, (y1 + y2) / 2 - 12, xx, (y1 + y2) / 2 + 12, color, 1, 5);
+    }
+  }
+  /** 按画布宽度折行的文字块（窄屏救命用；中英混排按字符切，优先在空格/全角空格处断） */
+  function wrapLines(ctx, s, maxW, size, weight) {
+    ctx.font = fs(size, weight);
+    var out = [], cur = '';
+    for (var i = 0; i < s.length; i++) {
+      var ch = s.charAt(i);
+      if (cur.length && ctx.measureText(cur + ch).width > maxW) {
+        var cut = cur.length;
+        for (var j = cur.length - 1; j >= 0 && j > cur.length - 14; j--) {
+          if (cur.charAt(j) === '　' || cur.charAt(j) === ' ') { cut = j; break; }
+        }
+        out.push(cur.slice(0, cut));
+        cur = cur.slice(cut).replace(/^[　\s]+/, '') + ch;
+      } else { cur += ch; }
+    }
+    if (cur) { out.push(cur); }
+    return out;
+  }
+  function textBlock(ctx, s, x, y, maxW, o) {
+    o = o || {};
+    var size = o.size || 12.5;
+    var lines = wrapLines(ctx, s, Math.max(60, maxW), size, o.weight);
+    var lh = o.lh || (size + 4);
+    for (var i = 0; i < lines.length; i++) {
+      text(ctx, lines[i], x, y + i * lh, o);
+    }
+    return lines.length;
+  }
+  /** 带标签的矢量 */
+  function vec(ctx, x1, y1, x2, y2, color, label, lw) {
+    arrow(ctx, x1, y1, x2, y2, color, lw === undefined ? 2.4 : lw, 7);
+    if (label) {
+      var dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy) || 1;
+      text(ctx, label, x2 + dx / L * 10, y2 + dy / L * 10 + (dy > 0 ? 6 : -6),
+        { size: 12.5, color: color, weight: 600, align: 'center' });
+    }
+  }
+  /** 粒子（圆 + 符号） */
+  function particle(ctx, x, y, r, color, sym, glow) {
+    if (glow) { ctx.shadowColor = color; ctx.shadowBlur = 9; }
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = color; ctx.fill();
+    ctx.shadowBlur = 0;
+    if (sym) { text(ctx, sym, x, y, { size: Math.max(9, r * 1.05), color: THEME.bg, align: 'center', weight: 700 }); }
+  }
+  /** 能量条 */
+  function bar(ctx, x, y, w, h, frac, color, fill) {
+    stroke(ctx, THEME.soft, 1); ctx.strokeRect(x, y, w, h);
+    var f = clamp(frac, 0, 1);
+    ctx.fillStyle = fill || THEME.goldFill;
+    ctx.fillRect(x + 1, y + 1, Math.max(0, (w - 2) * f), h - 2);
+    if (color) { stroke(ctx, color, 1.4); }
+  }
+
+  /* =====================================================================
+     场景：intro —— 医用电子直线加速器
+     ===================================================================== */
+  function drawIntro(ctx, W, H, st, S) {
+    var midY = H * 0.40;
+    var x0 = W * 0.10, x1 = W * 0.90, tubeH = Math.min(56, H * 0.10);
+    /* 加速管 */
+    stroke(ctx, THEME.white, 1.4);
+    ctx.strokeRect(x0, midY - tubeH / 2, x1 - x0, tubeH);
+    /* 电子枪 */
+    var gunW = Math.min(70, W * 0.09);
+    stroke(ctx, THEME.blue, 2.4);
+    ctx.strokeRect(x0 - gunW, midY - tubeH * 0.32, gunW, tubeH * 0.64);
+    text(ctx, '电子枪', x0 - gunW / 2, midY + tubeH * 0.78, { size: 12, color: THEME.blue, align: 'center', weight: 600 });
+    /* 靶 */
+    var tgtW = 12;
+    ctx.fillStyle = THEME.gold; ctx.fillRect(x1 - tgtW, midY - tubeH * 0.62, tgtW, tubeH * 1.24);
+    text(ctx, '重金属靶', x1 - tgtW / 2, midY + tubeH * 0.95, { size: 12, color: THEME.gold, align: 'center', weight: 600 });
+    /* 射线 */
+    for (var i = -3; i <= 3; i++) {
+      var ang = i * 0.20;
+      var rx = x1 + 26 * Math.cos(ang), ry = midY + 26 * Math.sin(ang) * 2.2;
+      arrow(ctx, x1 + 2, midY, rx, ry, 'rgba(240,172,95,0.75)', 1.4, 5);
+    }
+    if (W >= 620) {
+      text(ctx, '射线', x1 + 44, midY - tubeH * 0.85, { size: 12, color: THEME.gold, weight: 600 });
+    }
+    /* 管内电子与递增的速度箭头 */
+    var xs = [0.24, 0.42, 0.60, 0.78];
+    for (i = 0; i < xs.length; i++) {
+      var px = x0 + (x1 - x0) * xs[i], py = midY;
+      particle(ctx, px, py, 4.2, THEME.blue, '−', i === xs.length - 1);
+      var L = 22 + i * 16;
+      arrow(ctx, px + 7, py, px + 7 + L, py, 'rgba(255,255,255,0.55)', 1.6, 6);
+    }
+    text(ctx, '速度越来越大', x0 + (x1 - x0) * 0.55, midY - tubeH * 0.80,
+      { size: 12, color: THEME.grey, align: 'center' });
+    /* 电场方向提示 */
+    var ey = midY + tubeH * 0.5 + 16;
+    arrow(ctx, x0 + 8, ey, x1 - 8, ey, THEME.red, 1.6, 6);
+    text(ctx, W < 620 ? '管内电场方向' : '管内电场方向（由 + 指向 −）', x0 + 8, ey + 16,
+      { size: 11.5, color: THEME.red, alpha: 0.9 });
+    /* 问题栏 */
+    var qy = H * 0.72;
+    textBlock(ctx, '电子在加速器中是受到什么力的作用而加速的呢？', W / 2, qy, W - 28,
+      { size: Math.max(13, Math.min(21, W * 0.026)), color: THEME.yellow, align: 'center', weight: 700, lh: 26 });
+    textBlock(ctx, W < 620
+      ? '教材 P44 问题栏 —— 把猜想分成"力"和"能量"两列'
+      : '教材 P44 ·「问题」栏　→　把猜想分成两列：一列说"力"，一列说"能量"',
+      W / 2, qy + Math.min(52, H * 0.09), W - 28,
+      { size: 12.5, color: THEME.grey, align: 'center', lh: 17 });
+    S.hit = {};
+  }
+
+  /* =====================================================================
+     场景：accel —— 平行板加速（教材图10-10 + 两把钥匙）
+     ===================================================================== */
+  function drawAccel(ctx, W, H, st, S) {
+    var compact = W < 620;
+    var PK = P.PART[st.particle] || P.PART.e;
+    var U = st.U, d = st.d;
+    var v = P.accelVEnergy(U, PK.q, PK.m);
+    var a = P.accelA(U, d, PK.q, PK.m);
+    var tAll = P.accelTime(U, d, PK.q, PK.m);
+    var f = clamp(st.t, 0, 1);
+
+    /* --- 主图区域 --- */
+    var top = H * 0.05, bh = H * (st.show.bottom ? 0.40 : 0.68);
+    var xa = W * 0.20, xb = W * 0.80;
+    var midY = top + bh * 0.50, hh = Math.min(bh * 0.66, 240);
+
+    /* 极板 */
+    plateV(ctx, midY - hh / 2, midY + hh / 2, xa, '+', THEME.red, true);
+    plateV(ctx, midY - hh / 2, midY + hh / 2, xb, '−', THEME.blue, true);
+    text(ctx, 'A', xa, midY - hh / 2 - 16, { size: 13, color: THEME.red, align: 'center', weight: 700 });
+    text(ctx, 'B', xb, midY - hh / 2 - 16, { size: 13, color: THEME.blue, align: 'center', weight: 700 });
+    dimH(ctx, midY + hh / 2 + 26, xa, xb, 'd = ' + lfmt(d), THEME.grey);
+
+    /* 电场线 */
+    var ys = [];
+    for (var i = 1; i <= 5; i++) { ys.push(midY - hh / 2 + hh * i / 6); }
+    fieldLinesH(ctx, xa + 4, xb - 4, ys, 'rgba(255,255,255,0.24)');
+
+    /* 起点与终点标记 */
+    stroke(ctx, THEME.soft2, 1); dash(ctx, [4, 4]);
+    seg(ctx, xa, midY - hh / 2 - 6, xa, midY + hh / 2 + 6);
+    seg(ctx, xb, midY - hh / 2 - 6, xb, midY + hh / 2 + 6);
+    nodash(ctx);
+    text(ctx, '由静止释放', xa + 6, midY - hh / 2 - 12, { size: 11.5, color: THEME.grey });
+
+    /* 粒子与速度箭头 */
+    var px = xa + (xb - xa) * f;
+    var vProg = P.accelVEnergy(U * f, PK.q, PK.m);
+    var vMax = Math.max(v, 1e-9);
+    var arrL = 30 + 90 * (vProg / vMax);
+    if (f < 0.995) {
+      stroke(ctx, 'rgba(255,255,255,0.35)', 2); dash(ctx, [5, 5]);
+      seg(ctx, xa, midY, px, midY); nodash(ctx);
+    }
+    particle(ctx, px, midY, compact ? 7 : 9, PK.neg ? THEME.blue : THEME.red, PK.neg ? '−' : '+', true);
+    arrow(ctx, px + 11, midY, px + 11 + arrL, midY, THEME.white, 3, 8);
+    if (compact) {
+      text(ctx, 'v = ' + vfmt(vProg), W - 10, midY - 26,
+        { size: 12, color: THEME.yellow, weight: 600, align: 'right' });
+    } else {
+      text(ctx, 'v = ' + vfmt(vProg), px + 16 + arrL, midY - 15, { size: 12.5, color: THEME.yellow, weight: 600 });
+    }
+    /* 粒子标签 */
+    text(ctx, PK.name, px, midY + (compact ? 30 : 34), { size: 12.5, color: PK.neg ? THEME.blue : THEME.red, align: 'center', weight: 600 });
+
+    /* 右上角装置读数 */
+    var rxp = W - 14;
+    text(ctx, 'U = ' + ufmt(U), rxp, top + 10, { size: 12.5, color: THEME.white, align: 'right', weight: 600 });
+    text(ctx, 'E = U/d = ' + efmt(P.fieldE(U, d)), rxp, top + 28, { size: 12, color: THEME.grey, align: 'right' });
+
+    /* --- 底部信息条 --- */
+    if (!st.show.bottom) { S.hit = {}; return; }
+    var by = H * 0.52, bh2 = H * 0.44;
+
+    if (st.show.dual) {
+      /* 两条通道并排（盒高扣掉一行结论） */
+      var colW = (W - 36) / 2;
+      var c1 = 12, c2 = 12 + colW + 12;
+      bh2 = bh2 - 32;
+      /* 力与运动 */
+      box(ctx, c1, by, colW, bh2, '通道一 · 牛顿第二定律', THEME.white);
+      var t1 = ['a = qE/m = qU/(md)', 'v² = 2ad', 'v = √(2qU/m)'];
+      for (i = 0; i < t1.length; i++) {
+        text(ctx, t1[i], c1 + 12, by + 38 + i * 26, { size: compact ? 11.5 : 13, color: i === 2 ? THEME.yellow : THEME.white });
+      }
+      text(ctx, '要走 d，得先知道 a 和 t', c1 + 12, by + bh2 - 14, { size: 11.5, color: THEME.grey });
+      /* 功与能量（黄） */
+      box(ctx, c2, by, colW, bh2, '通道二 · 动能定理', THEME.yellow);
+      var t2 = ['W = qU', 'qU = ½mv²', 'v = √(2qU/m)'];
+      for (i = 0; i < t2.length; i++) {
+        text(ctx, t2[i], c2 + 12, by + 38 + i * 26, { size: compact ? 11.5 : 13, color: i === 2 ? THEME.yellow : THEME.white });
+      }
+      text(ctx, '不用管中间过程', c2 + 12, by + bh2 - 14, { size: 11.5, color: THEME.grey });
+      /* 中间等号 */
+      text(ctx, '＝', W / 2, by + bh2 / 2, { size: 26, color: THEME.yellow, align: 'center', weight: 700 });
+      /* 数值 */
+      textBlock(ctx, 'v = ' + vfmt(v) + '（两条通道给出同一个 v）', W / 2, by + bh2 + 22, W - 24,
+        { size: 12.5, color: THEME.yellow, align: 'center', weight: 600, lh: 16 });
+      S.hit = {};
+      return;
+    }
+
+    if (st.show.gravity) {
+      /* 重力 vs 静电力（对数条形对照） */
+      var gE = P.fieldE(U, d), Fq = PK.q * gE, Fg = PK.m * P.G0;
+      var ratio = P.gravityRatio(st.particle, gE);
+      text(ctx, '同一个粒子，两个力差多少？（横轴按数量级画）', 12, by + 14, { size: 12.5, color: THEME.white, weight: 600 });
+      var bx = 12, bw = W - 24;
+      var rows = [
+        { t: '静电力 qE', F: Fq, c: THEME.red },
+        { t: '重力 mg', F: Fg, c: THEME.blue }
+      ];
+      var maxE = Math.max(Math.log10(Fq), Math.log10(Fg));
+      var minE = Math.min(Math.log10(Fq), Math.log10(Fg));
+      for (i = 0; i < rows.length; i++) {
+        var ry = by + 52 + i * 40;
+        text(ctx, rows[i].t, bx, ry + 12, { size: 12.5, color: rows[i].c, weight: 600 });
+        var x0 = bx + 96, x1 = bx + bw - 96;
+        stroke(ctx, THEME.soft2, 1); seg(ctx, x0, ry + 12, x1, ry + 12);
+        var lg = Math.log10(rows[i].F);
+        var frac = (maxE - minE) < 1e-9 ? 1 : (lg - minE + 1) / (maxE - minE + 1);
+        var w2 = (x1 - x0) * clamp(frac, 0.02, 1);
+        ctx.fillStyle = i === 0 ? THEME.redFill : THEME.blueFill;
+        ctx.fillRect(x0, ry + 2, w2, 20);
+        stroke(ctx, rows[i].c, 1.4); ctx.strokeRect(x0, ry + 2, w2, 20);
+        text(ctx, sci(rows[i].F, 2) + ' N', x0 + w2 + 8, ry + 12, { size: 12, color: THEME.white });
+      }
+      var vd = P.gravityVerdict(st.particle, gE);
+      var txt = vd === 'ignore' ? 'qE 比 mg 大 ' + sci(ratio, 1) + ' 倍　⇒　重力可以忽略'
+        : vd === 'gravity' ? 'mg 反而更大　⇒　重力才是主角' : '两者同量级　⇒　必须逐个比较';
+      text(ctx, txt, 12, by + bh2 - 22, { size: 13, color: THEME.yellow, weight: 600 });
+      textBlock(ctx, W < 620
+        ? '教参原句：通常重力可以忽略。'
+        : '教参原句：「在处理带电粒子在电场中运动的问题时，通常重力可以忽略。」',
+        12, by + bh2 - 6, W - 24, { size: 11.5, color: THEME.grey, lh: 15 });
+      S.hit = {};
+      return;
+    }
+
+    if (st.show.energy) {
+      /* 能量转化条 */
+      text(ctx, '能量怎么转？（同一个粒子，边上边看）', 12, by + 16, { size: 12.5, color: THEME.white, weight: 600 });
+      var ek = P.accelKE(U * f, PK.q), ekAll = P.accelKE(U, PK.q);
+      var ep = ekAll - ek;
+      var y0 = by + 44, bwi = W - 24, bhi = 26;
+      text(ctx, '电势能 Ep', 12, y0 + bhi / 2, { size: 12.5, color: THEME.gold, weight: 600 });
+      bar(ctx, 96, y0, bwi - 200, bhi, ep / ekAll, THEME.gold, THEME.goldFill);
+      text(ctx, kefmt(ep), W - 14, y0 + bhi / 2, { size: 12.5, color: THEME.gold, align: 'right', weight: 600 });
+      var y1 = y0 + 44;
+      text(ctx, '动能 Ek', 12, y1 + bhi / 2, { size: 12.5, color: THEME.yellow, weight: 600 });
+      bar(ctx, 96, y1, bwi - 200, bhi, ek / ekAll, THEME.yellow, THEME.yellowSoft);
+      text(ctx, kefmt(ek), W - 14, y1 + bhi / 2, { size: 12.5, color: THEME.yellow, align: 'right', weight: 600 });
+      textBlock(ctx, '静电力做功 W = qU = ' + kefmt(ekAll) + '（全部变成动能）',
+        12, by + bh2 - 34, W - 24, { size: 13, color: THEME.yellow, weight: 600, lh: 17 });
+      textBlock(ctx, '这就是"能量通道"的全部内容 —— 中间过程一律不用管。',
+        12, by + bh2 - 14, W - 24, { size: 11.5, color: THEME.grey, lh: 15 });
+      S.hit = {};
+      return;
+    }
+
+    if (st.show.judge) {
+      /* 判据：问什么，选哪条 */
+      var q = st.judge === 'time' ? 'time' : 'speed';
+      var rows2 = [
+        { k: 'time', t: '要问"用了多少时间"', c: '力与运动（牛顿第二定律＋匀变速公式）', col: THEME.green },
+        { k: 'speed', t: '只要问"到达时速度多大"', c: '功与能量（动能定理 qU = ½mv²）', col: THEME.yellow }
+      ];
+      text(ctx, '教材 P44 的判据：看题目要什么', 12, by + 16, { size: 12.5, color: THEME.white, weight: 600 });
+      for (i = 0; i < rows2.length; i++) {
+        var on = (rows2[i].k === q);
+        var ry2 = by + 44 + i * 58;
+        stroke(ctx, on ? rows2[i].col : THEME.soft2, on ? 1.8 : 1);
+        ctx.strokeRect(12, ry2, W - 24, 48);
+        if (on) { ctx.fillStyle = 'rgba(255,255,255,0.04)'; ctx.fillRect(12, ry2, W - 24, 48); }
+        text(ctx, rows2[i].t, 26, ry2 + 17, { size: 12.5, color: on ? THEME.white : THEME.grey, weight: on ? 600 : 400 });
+        text(ctx, '→  ' + rows2[i].c, 26, ry2 + 35, { size: 12.5, color: on ? rows2[i].col : THEME.grey, weight: 600 });
+      }
+      textBlock(ctx, '非匀强电场呢？—— 力与运动这条路走不通，能量通道照用（下一步看）',
+        12, by + bh2 - 24, W - 24, { size: 12.5, color: THEME.grey, lh: 16 });
+      S.hit = {};
+      return;
+    }
+    S.hit = {};
+  }
+
+  /* =====================================================================
+     场景：cyl —— 例题1 多级圆筒直线加速器
+     ===================================================================== */
+  function drawCyl(ctx, W, H, st, S) {
+    var compact = W < 620;
+    var PK = P.PART.e;
+    var n = clamp(Math.round(st.n), 1, 8);
+    var u = st.u, T = st.T;
+    var lens = [];
+    var sum = 0, i;
+    for (i = 1; i <= n; i++) { var L = P.cylLen(i, T, u, PK.q, PK.m); lens.push(L); sum += L; }
+
+    var gapW = Math.max(8, W * 0.012);
+    var axleY = H * 0.40;
+    var tubeH = Math.min(64, H * 0.13);
+    var avail = W * 0.90 - gapW * n;
+    var pad = W * 0.05;
+    var sc = avail / sum;
+
+    /* 圆筒 */
+    var x = pad;
+    var segs = [];
+    for (i = 0; i < n; i++) {
+      var wI = lens[i] * sc;
+      if (i > 0) { x += gapW; }
+      segs.push({ x: x, w: wI, n: i + 1 });
+      stroke(ctx, THEME.white, 1.6);
+      ctx.strokeRect(x, axleY - tubeH / 2, wI, tubeH);
+      ctx.fillStyle = 'rgba(255,255,255,0.04)';
+      ctx.fillRect(x, axleY - tubeH / 2, wI, tubeH);
+      text(ctx, String(i + 1), x + wI / 2, axleY, { size: 12, color: THEME.grey, align: 'center', weight: 600 });
+      if (!compact) {
+        text(ctx, lfmt(lens[i]), x + wI / 2, axleY - tubeH / 2 - 12, { size: 11.5, color: THEME.grey, align: 'center' });
+      }
+      x += wI;
+    }
+    /* 第 0 个圆板（电子源） */
+    var srcX = Math.max(pad - gapW - 6, 14);
+    var labX = srcX;
+    var labAlign = 'center';
+    if (labX < 70) { labX = 8; labAlign = 'left'; }
+    stroke(ctx, THEME.red, 4);
+    seg(ctx, srcX, axleY - tubeH * 0.34, srcX, axleY + tubeH * 0.34);
+    text(ctx, '圆板 0', labX, axleY - tubeH * 0.5 - 12, { size: 11.5, color: THEME.red, align: labAlign, weight: 600 });
+    text(ctx, compact ? '电子由此出发' : '（电子从这里由静止出发）', labX, axleY + tubeH * 0.5 + 16,
+      { size: 11, color: THEME.grey, align: labAlign });
+
+    /* 间隙加速标记 */
+    for (i = 1; i < n; i++) {
+      var gx = (segs[i - 1].x + segs[i - 1].w + segs[i].x) / 2;
+      arrow(ctx, gx - 12, axleY - tubeH * 0.72, gx + 12, axleY - tubeH * 0.72, THEME.yellow, 1.6, 5);
+      if (i === 1) { text(ctx, '只在间隙被加速', gx, axleY - tubeH * 0.72 - 14, { size: 11.5, color: THEME.yellow, align: 'center' }); }
+    }
+
+    /* 电子位置：把 f∈[0,1] 映射到"匀速穿过每个圆筒 + 瞬间过隙" */
+    var f = clamp(st.t, 0, 1);
+    var totalTime = 0, times = [], tt = 0;
+    for (i = 0; i < n; i++) {
+      var vI = P.cylV(i + 1, u, PK.q, PK.m);
+      var dt = lens[i] / vI;
+      times.push({ t0: tt, t1: tt + dt });
+      tt += dt;
+    }
+    totalTime = tt;
+    var tau = f * totalTime;
+    var px = segs[n - 1].x + segs[n - 1].w, curN = n;
+    var inGap = false;
+    for (i = 0; i < n; i++) {
+      if (tau <= times[i].t1) {
+        var loc = (tau - times[i].t0) / (times[i].t1 - times[i].t0);
+        px = segs[i].x + segs[i].w * clamp(loc, 0, 1);
+        curN = i + 1; break;
+      }
+    }
+    particle(ctx, px, axleY, 7, THEME.blue, '−', true);
+    var vNow = P.cylV(curN, u, PK.q, PK.m);
+    arrow(ctx, px + 10, axleY, px + 10 + Math.min(70, 18 + curN * 8), axleY, THEME.white, 2.6, 7);
+
+    /* 交变电压方波 + 到达间隙的时刻（或：lₙ–√n 直线图） */
+    var wy = H * 0.70, wh = Math.min(78, H * 0.16);
+    if (st.show.law) {
+      box(ctx, W * 0.05, wy - wh * 0.9, W * 0.90, wh * 1.9,
+        compact ? 'lₙ 与 √n' : '第 n 个圆筒的长度 lₙ 与 √n（把 n 个点画出来）', THEME.soft2);
+      var px0 = W * 0.05 + 62, px1 = W * 0.95 - 26;
+      var py0 = wy + wh * 0.72, py1 = wy - wh * 0.62;
+      stroke(ctx, THEME.soft, 1.4);
+      seg(ctx, px0, py0, px1, py0); seg(ctx, px0, py0, px0, py1);
+      var maxS = Math.sqrt(n), maxL = P.cylLen(n, T, u, PK.q, PK.m);
+      var Xp = function (s) { return px0 + (px1 - px0) * (s / maxS); };
+      var Yp = function (L) { return py0 - (py0 - py1) * (L / maxL); };
+      text(ctx, '√n', px1, py0 + 14, { size: 11.5, color: THEME.grey, align: 'right' });
+      text(ctx, 'lₙ', px0 - 8, py1, { size: 11.5, color: THEME.grey, align: 'right' });
+      /* 拟合直线 l ∝ √n */
+      stroke(ctx, THEME.yellow, 1.6); dash(ctx, [7, 5]);
+      seg(ctx, Xp(0), Yp(0), Xp(maxS), Yp(maxL)); nodash(ctx);
+      /* 数据点 */
+      for (i = 1; i <= n; i++) {
+        var ss = Math.sqrt(i), LL = P.cylLen(i, T, u, PK.q, PK.m);
+        fillCircle(ctx, Xp(ss), Yp(LL), 3.4, THEME.white);
+      }
+      textBlock(ctx, W < 620 ? 'lₙ ∝ √n，且 lₙ/l₁ = √n'
+        : 'lₙ = (T/2)·√(2neu/m)　⇒　lₙ ∝ √n，且 lₙ/l₁ = √n',
+        W * 0.05 + 8, wy - wh * 0.74, W * 0.88, { size: 12.5, color: THEME.yellow, weight: 600, lh: 16 });
+      S.hit = {}; S.cyl = { segs: segs, axleY: axleY, tubeH: tubeH };
+      return;
+    }
+    box(ctx, W * 0.05, wy - wh * 0.9, W * 0.90, wh * 1.9,
+      compact ? '交变电压 u–t' : '交变电源两极间的电势差 u–t（教材图10.5-1 乙）', THEME.soft2);
+    var gx0 = W * 0.05 + 42, gx1 = W * 0.95 - 16;
+    var gyMid = wy, gyAmp = wh * 0.55;
+    stroke(ctx, GRID, 1); seg(ctx, gx0, gyMid, gx1, gyMid);
+    var tMax = T * (n + 1);
+    var X = function (t) { return gx0 + (gx1 - gx0) * (t / tMax); };
+    var Yv = function (v) { return gyMid - gyAmp * v; };
+    /* 方波：半周期 +u / 半周期 −u */
+    stroke(ctx, THEME.red, 2.2);
+    ctx.beginPath();
+    var half = T / 2, k = 0;
+    while (k * half < tMax) {
+      var sgn = (k % 2 === 0) ? 1 : -1;
+      var ta = k * half, tb = Math.min((k + 1) * half, tMax);
+      ctx.moveTo(X(ta), Yv(sgn));
+      ctx.lineTo(X(tb), Yv(sgn));
+      if (tb < tMax) { ctx.lineTo(X(tb), Yv(-sgn)); }
+      k++;
+    }
+    ctx.stroke();
+    /* 每个间隙的到达时刻 */
+    for (i = 1; i < n; i++) {
+      var tArr = times[i - 1].t1;   /* 离开第 i 个圆筒 = 到达第 i+1 个间隙 */
+      var mx = X(tArr);
+      stroke(ctx, THEME.yellow, 1.4); dash(ctx, [3, 3]);
+      seg(ctx, mx, Yv(1.15), mx, Yv(-1.15)); nodash(ctx);
+      text(ctx, String(i), mx, Yv(-1.35), { size: 10.5, color: THEME.yellow, align: 'center' });
+    }
+    text(ctx, compact ? '每半周期一个箭头' : '横轴 t（每半个周期 T/2 被箭头标一次：电子恰好踏准节奏）',
+      gx1, Yv(1.5), { size: 11.5, color: THEME.grey, align: 'right' });
+    textBlock(ctx, 'u = ' + ufmt(u) + '　T = ' + sci(T, 1) + ' s　lₙ ∝ √n',
+      W * 0.05 + 8, wy + wh * 0.90, W * 0.86, { size: 12.5, color: THEME.yellow, weight: 600, lh: 16 });
+
+    S.hit = {};
+    S.cyl = { segs: segs, axleY: axleY, tubeH: tubeH };
+  }
+
+  /* =====================================================================
+     场景：nonuni —— 非匀强电场（官方第 7 问）
+     ===================================================================== */
+  function drawNonuni(ctx, W, H, st, S) {
+    var compact = W < 620;
+    var Q = P.NU_Q, q = -P.E_CHG, m = P.M_E;
+    var r0 = P.NU_R0, r1 = P.NU_R1;
+    var np = P.nonUniPath(Q, q, m, r0, r1, 3000);
+    var vEnd = np.vEnergy;
+
+    var midY = H * 0.42;
+    var cx = W * 0.80;               /* 点电荷（尖端）位置 */
+    var x0 = W * 0.10, x1 = W * 0.62; /* 电子运动的区间 */
+    var scale = (cx - x0) / r0;      /* r → 屏幕 */
+
+    /* 尖端（点电荷） */
+    dot(ctx, cx, midY, 11, THEME.red, true);
+    text(ctx, '+', cx, midY, { size: 14, color: THEME.bg, align: 'center', weight: 700 });
+    text(ctx, '尖端（点电荷 Q）', cx, midY - 30, { size: 12.5, color: THEME.red, align: 'center', weight: 600 });
+    text(ctx, '越靠近越密：E = kQ/r²', cx, midY + 30, { size: 12, color: THEME.grey, align: 'center' });
+
+    /* 径向电场线 */
+    for (var i = 0; i < 6; i++) {
+      var ang = (i - 2.5) * 0.30;
+      var rr = 155;
+      var ex = cx - rr * Math.cos(ang), ey = midY + rr * Math.sin(ang);
+      stroke(ctx, 'rgba(255,255,255,0.22)', 1);
+      seg(ctx, cx - 12 * Math.cos(ang), midY + 12 * Math.sin(ang), ex, ey);
+    }
+    /* 运动轴上再补几条：越靠近箭头越密 */
+    for (i = 0; i < 5; i++) {
+      var fr = 0.14 + i * 0.17;
+      var ax = x0 + (cx - x0) * fr;
+      arrow(ctx, ax - 10, midY, ax + 10, midY, 'rgba(252,98,85,0.55)', 1.2, 5);
+    }
+
+    /* 起止标记 */
+    stroke(ctx, THEME.soft2, 1); dash(ctx, [4, 4]);
+    seg(ctx, x0, midY - 44, x0, midY + 44);
+    seg(ctx, x1, midY - 44, x1, midY + 44);
+    nodash(ctx);
+    text(ctx, compact ? 'r₀ 由静止' : 'r₀ = 5.0 cm　由静止', Math.max(x0, compact ? 6 : x0), midY - 56,
+      { size: 11.5, color: THEME.grey, align: compact ? 'left' : 'center' });
+    text(ctx, compact ? 'r' : 'r = 0.50 cm', x1, midY - 56, { size: 11.5, color: THEME.grey, align: 'center' });
+
+    /* 电子 */
+    var f = clamp(st.t, 0, 1);
+    var rNow = r0 + (r1 - r0) * f;
+    var px = cx - rNow * scale;
+    /* 位置按真实运动：先慢后快（用能量反解 r–t 太贵，用能量比做进度校正） */
+    var vNow = P.nonUniV(Q, q, m, r0, rNow);
+    stroke(ctx, 'rgba(255,255,255,0.30)', 2); dash(ctx, [5, 5]);
+    seg(ctx, x0, midY, px, midY); nodash(ctx);
+    particle(ctx, px, midY, 8, THEME.blue, '−', true);
+    arrow(ctx, px - 10, midY + 34, px - 10 - Math.min(80, 16 + vNow / vEnd * 70), midY + 34, THEME.white, 2.6, 7);
+    text(ctx, 'v = ' + vfmt(vNow), px - 14, midY + 56, { size: 12.5, color: THEME.yellow, align: 'right', weight: 600 });
+
+    /* 两通道对照 */
+    var by = H * 0.62;
+    var colW = (W - 36) / 2;
+    box(ctx, 12, by, colW, H * 0.32 - 6, '通道一 · 力与运动', THEME.white);
+    text(ctx, compact ? 'a 一直在变' : 'a 一直在变（E ∝ 1/r²）', 22, by + 34, { size: compact ? 11 : 12.5, color: THEME.white });
+    text(ctx, compact ? '只能切成小段' : '⇒ 只能把 0.50 cm', 22, by + 58, { size: compact ? 11 : 12.5, color: THEME.white });
+    text(ctx, compact ? '逐段算' : '　 切成很多小段逐段算', 22, by + 80, { size: compact ? 11 : 12.5, color: THEME.white });
+    text(ctx, compact ? '（数值积分 3000 段）' : '（数值积分，3000 段）', 22, by + H * 0.32 - 30, { size: 11, color: THEME.grey });
+    box(ctx, 24 + colW, by, colW, H * 0.32 - 6, '通道二 · 功与能量', THEME.yellow);
+    text(ctx, 'qΔφ = ½mv²', 34 + colW, by + 34, { size: compact ? 11 : 12.5, color: THEME.yellow, weight: 600 });
+    text(ctx, compact ? 'Δφ = 485.3 V' : 'Δφ = kQ(1/r₀ − 1/r)', 34 + colW, by + 58, { size: compact ? 11 : 12.5, color: THEME.white });
+    text(ctx, compact ? '（与形状无关）' : '　 = 485.3 V（与形状无关）', 34 + colW, by + 80, { size: compact ? 11 : 12.5, color: THEME.white });
+    text(ctx, compact ? '一步到位' : '一步到位，不用管 a 怎么变', 34 + colW, by + H * 0.32 - 30, { size: 11, color: THEME.grey });
+
+    textBlock(ctx, '两条通道的末速度完全一致：' + vfmt(vEnd) +
+      '（相对差 ' + (np.relErr * 100).toExponential(1) + '%）',
+      W / 2, by - 20, W - 24, { size: 12, color: THEME.yellow, align: 'center', weight: 600, lh: 15 });
+    S.hit = {};
+  }
+
+  /* =====================================================================
+     场景：deflect —— 偏转（教材图10.5-2 / 例题2）
+     ===================================================================== */
+  function drawDeflect(ctx, W, H, st, S) {
+    var compact = W < 620;
+    var PK = P.PART[st.particle] || P.PART.e;
+    var U = st.U, d = st.d, l = st.l, v0 = st.v0;
+    var a = P.deflA(U, d, PK.q, PK.m);
+    var yPhys = P.deflY(U, d, l, v0, PK.q, PK.m);
+    var tanT = P.deflTan(U, d, l, v0, PK.q, PK.m);
+    var hit = yPhys > d / 2;
+    var yShow = Math.min(yPhys, d / 2 + d * 0.30);
+    /* 上板 A 带正电：电子（负）受向上的力 ⇒ 向上偏；正离子向下偏 */
+    var dirUp = PK.neg ? 1 : -1;             /* +1 = 屏幕上向上偏 */
+    var sgnScreen = -dirUp;                  /* 屏幕坐标里"向上"对应负角 */
+
+    var top = H * 0.06;
+    var plotH = st.show.bottom ? H * 0.52 : H * 0.80;
+    var xIn = W * 0.14, xOut = W * 0.68, xEndP = W * 0.94;
+    var midY = top + plotH * 0.58;
+    var halfD = Math.min(plotH * 0.40, 120);
+    var kY = halfD / (d / 2);
+    var kX = (xOut - xIn) / l;
+
+    /* 极板 */
+    plateH(ctx, xIn, xOut, midY - halfD, '+', THEME.red, true);
+    plateH(ctx, xIn, xOut, midY + halfD, '−', THEME.blue, true);
+    text(ctx, 'A（+）', xOut + 8, midY - halfD, { size: 12.5, color: THEME.red, weight: 600 });
+    text(ctx, 'B（−）', xOut + 8, midY + halfD, { size: 12.5, color: THEME.blue, weight: 600 });
+    fieldLinesV(ctx, midY - halfD + 4, midY + halfD - 4,
+      [xIn + (xOut - xIn) * 0.22, xIn + (xOut - xIn) * 0.5, xIn + (xOut - xIn) * 0.78],
+      'rgba(255,255,255,0.20)');
+
+    /* 中线 */
+    stroke(ctx, THEME.soft2, 1); dash(ctx, [7, 5]);
+    seg(ctx, xIn - 46, midY, xEndP, midY); nodash(ctx);
+    if (!compact) { text(ctx, '中线', xIn - 50, midY - 10, { size: 11, color: THEME.grey, align: 'right' }); }
+
+    /* 轨迹：板内抛物线 + 板外直线（沿出射速度方向） */
+    var ypix = function (s) {              /* s ∈ [0, l] 为板内位置 */
+      var yy = 0.5 * a * Math.pow(s / v0, 2);
+      return midY - dirUp * Math.min(yy, yShow) * kY;
+    };
+    var yExit = ypix(l);
+    /* 屏幕坐标系下的出射斜率 dy/dx = -dirUp · tanθ · (kY / kX) */
+    var slopeScreen = -dirUp * tanT * (kY / kX);
+    stroke(ctx, THEME.yellow, 2.6);
+    ctx.beginPath();
+    var N = 64, i;
+    for (i = 0; i <= N; i++) {
+      var xx = xIn + (xOut - xIn) * i / N;
+      var yy2 = ypix((xx - xIn) / kX);
+      if (i === 0) { ctx.moveTo(xx, yy2); } else { ctx.lineTo(xx, yy2); }
+    }
+    ctx.stroke();
+    /* 出板后的直线段 */
+    stroke(ctx, THEME.yellow, 1.6); dash(ctx, [8, 6]);
+    ctx.beginPath();
+    ctx.moveTo(xOut, yExit);
+    ctx.lineTo(xEndP, yExit + slopeScreen * (xEndP - xOut));
+    ctx.stroke(); nodash(ctx);
+
+    /* 分解（灰＝辅助构造）：等时间间隔的投影 */
+    if (st.show.split) {
+      var NT = 6;
+      for (i = 0; i <= NT; i++) {
+        var xT = xIn + (xOut - xIn) * i / NT;
+        var yT = ypix((xT - xIn) / kX);
+        stroke(ctx, 'rgba(255,255,255,0.28)', 1); dash(ctx, [3, 3]);
+        seg(ctx, xT, yT, xT, midY);
+        seg(ctx, xIn - 46, yT, xT, yT);
+        nodash(ctx);
+        fillCircle(ctx, xT, yT, 2.4, 'rgba(255,255,255,0.6)');
+      }
+      text(ctx, compact ? '水平：等距 ⇒ 匀速' : '沿 v₀ 方向：等时间间隔等距 ⇒ 匀速',
+        compact ? 6 : xIn - 42, midY + 18, { size: 11.5, color: THEME.white });
+      text(ctx, compact ? '竖直：1 : 3 : 5 ⇒ 匀加速' : '垂直方向：间距 1 : 3 : 5 ⇒ 初速为零的匀加速',
+        compact ? 6 : xIn + 4, top + plotH * 0.04, { size: 11.5, color: THEME.white });
+    }
+
+    /* 入射速度箭头 */
+    arrow(ctx, xIn - 42, midY, xIn - 6, midY, THEME.white, 3, 8);
+    text(ctx, 'v₀ = ' + vfmt(v0), xIn - 46, midY + 16, { size: 12.5, color: THEME.yellow, align: 'left', weight: 600 });
+
+    /* 出射速度分解 + θ */
+    var xE = xOut + (xEndP - xOut) * 0.40;
+    var yE = yExit + slopeScreen * (xE - xOut);
+    if (st.show.angle) {
+      var Lv = 58, Lperp = Math.min(58, Math.max(12, 58 * tanT / Math.max(tanT, 0.06)));
+      vec(ctx, xE, yE, xE + Lv, yE, THEME.white, 'v₀', 2.2);
+      vec(ctx, xE, yE, xE + Lv, yE + sgnScreen * Lperp, THEME.blue, 'v⊥', 2.2);
+      arrow(ctx, xE, yE, xE + Lv, yE + sgnScreen * Lperp, THEME.yellow, 3, 8);
+      text(ctx, 'v', xE + Lv + 10, yE + sgnScreen * Lperp, { size: 12.5, color: THEME.yellow, weight: 600, align: 'left' });
+      var ang = Math.atan(tanT);
+      ctx.beginPath();
+      ctx.arc(xE, yE, 32, Math.min(0, sgnScreen * ang), Math.max(0, sgnScreen * ang));
+      stroke(ctx, THEME.yellow, 1.4); ctx.stroke();
+      text(ctx, 'θ = ' + num(ang * 180 / Math.PI, 2) + '°',
+        compact ? xE - 6 : xE + 40, compact ? yE + sgnScreen * 44 : yE + sgnScreen * 18,
+        { size: 12.5, color: THEME.yellow, weight: 600, align: compact ? 'right' : 'left' });
+    }
+
+    /* y 标注 */
+    var xMark = xOut - 8;
+    stroke(ctx, THEME.yellow, 1.6);
+    seg(ctx, xMark, midY, xMark, yExit);
+    text(ctx, 'y = ' + lfmt(yPhys), xMark - 14, (midY + yExit) / 2,
+      { size: 12.5, color: THEME.yellow, align: 'right', weight: 600 });
+
+    /* 出界提示 */
+    if (st.show.limit) {
+      stroke(ctx, THEME.red, 1.4); dash(ctx, [7, 5]);
+      seg(ctx, xIn, midY - halfD, xOut, midY - halfD); nodash(ctx);
+      var vLim = P.deflV0Limit(U, d, l, PK.q, PK.m);
+      var uLim = P.deflULimit(d, l, v0, PK.q, PK.m);
+      text(ctx, hit ? '已经打在极板上（y > d/2）' : '还没打到极板（y < d/2）',
+        W / 2, top + 14, { size: 13, color: hit ? THEME.red : THEME.yellow, align: 'center', weight: 700 });
+      text(ctx, '临界：v₀ ≥ ' + vfmt(vLim) + '　或　U ≤ ' + ufmt(uLim),
+        W / 2, top + 34, { size: compact ? 11 : 12, color: THEME.grey, align: 'center' });
+    }
+
+    /* 右上装置读数 */
+    text(ctx, compact ? ('U = ' + ufmt(U)) : ('U = ' + ufmt(U) + '　d = ' + lfmt(d) + '　l = ' + lfmt(l)),
+      W - 12, top + 10, { size: 12, color: THEME.white, align: 'right' });
+    text(ctx, compact ? ('E = ' + efmt(P.fieldE(U, d))) : ('E = U/d = ' + efmt(P.fieldE(U, d))),
+      W - 12, top + 28, { size: 12, color: THEME.grey, align: 'right' });
+
+    /* ---- 底部条 ---- */
+    var by = H * 0.62, bh2 = H * 0.34;
+    if (!st.show.bottom) {
+      S.hit = { deflect: { xIn: xIn, xOut: xOut, midY: midY, kY: kY, dirUp: dirUp, kX: kX } };
+      return;
+    }
+
+    if (st.show.energy) {
+      var Ek0 = 0.5 * PK.m * v0 * v0, dEk = P.deflWork(U, d, yPhys, PK.q);
+      textBlock(ctx, '全过程动能定理：qU_总 = ΔEk，其中 U_总 = E·y = ' + ufmt(U / d * yPhys),
+        12, by + 16, W - 24, { size: 12.5, color: THEME.white, weight: 600, lh: 16 });
+      var bwi = W - 190;
+      text(ctx, '初动能', 12, by + 52, { size: 12.5, color: THEME.grey, weight: 600 });
+      bar(ctx, 96, by + 40, bwi, 24, 1, THEME.white, 'rgba(255,255,255,0.16)');
+      text(ctx, kefmt(Ek0), W - 12, by + 52, { size: 12, color: THEME.white, align: 'right' });
+      text(ctx, '动能增量', 12, by + 96, { size: 12.5, color: THEME.yellow, weight: 600 });
+      bar(ctx, 96, by + 84, bwi, 24, dEk / Math.max(Ek0, dEk), THEME.yellow, THEME.yellowSoft);
+      text(ctx, kefmt(dEk), W - 12, by + 96, { size: 12, color: THEME.yellow, align: 'right' });
+      var vE = P.deflVenergy(U, d, yPhys, v0, PK.q, PK.m);
+      textBlock(ctx, 'v = √(v₀² + 2qEy/m) = ' + vfmt(vE) + '（与分速度合成完全一致）',
+        12, by + bh2 - 30, W - 24, { size: 12.5, color: THEME.yellow, weight: 600, lh: 16 });
+      S.hit = {};
+      return;
+    }
+
+    if (st.show.compare) {
+      textBlock(ctx, '同一加速电场 U₀ 加速，再进入同一偏转电场：三条轨迹完全重合',
+        12, by + 16, W - 24, { size: 12.5, color: THEME.yellow, weight: 600, lh: 16 });
+      var U0c = st.U0;
+      var rowsC = P.MIX_KEYS.map(function (k) {
+        var pp = P.PART[k];
+        return { p: pp, v0: P.deflV0(U0c, pp.q, pp.m), y: P.deflY0(U, d, l, U0c), tan: P.deflTan0(U, d, l, U0c) };
+      });
+      var r;
+      var colA = compact ? 70 : 74, colB = compact ? 196 : 246, colC = compact ? 300 : 400;
+      for (r = 0; r < rowsC.length; r++) {
+        var ry = by + 42 + r * 28;
+        text(ctx, rowsC[r].p.sym, 16, ry + 10, { size: 12.5, color: THEME.white, weight: 700 });
+        text(ctx, 'v₀ = ' + vfmt(rowsC[r].v0), colA, ry + 10, { size: 12, color: THEME.white });
+        text(ctx, 'y = ' + lfmt(rowsC[r].y), colB, ry + 10, { size: 12, color: THEME.yellow });
+        text(ctx, 'tanθ = ' + num(rowsC[r].tan, 4), colC, ry + 10, { size: 12, color: THEME.yellow });
+      }
+      var v0s = rowsC.map(function (o) { return o.v0; });
+      textBlock(ctx, 'v₀ 各不相同（最大差 ' +
+        ((Math.max.apply(null, v0s) / Math.min.apply(null, v0s) - 1) * 100).toFixed(0) +
+        '%），可 y 与 tanθ 一模一样 —— 因为 y = Ul²/(4U₀d)、tanθ = Ul/(2U₀d) 里没有 q、m',
+        12, by + bh2 - 26, W - 24, { size: 12, color: THEME.grey, lh: 15 });
+      S.hit = {};
+      return;
+    }
+
+    /* 默认：数值条 */
+    textBlock(ctx, 'y = qUl²/(2mdv₀²) = ' + lfmt(yPhys) + '　　tanθ = ' + num(tanT, 4) +
+      '　　θ = ' + num(Math.atan(tanT) * 180 / Math.PI, 2) + '°',
+      12, by + 18, W - 24, { size: 12.5, color: THEME.yellow, weight: 600, lh: 16 });
+    textBlock(ctx, '装置量写法（U₀ = ' + ufmt(st.U0) + '）：y = Ul²/(4U₀d) = ' +
+      lfmt(P.deflY0(U, d, l, st.U0)) + '　tanθ = ' + num(P.deflTan0(U, d, l, st.U0), 4),
+      12, by + 52, W - 24, { size: 12, color: THEME.grey, lh: 15 });
+    textBlock(ctx, '整条轨迹是一条抛物线（类平抛）：沿 v₀ 匀速 ＋ 垂直方向匀加速',
+      12, by + 84, W - 24, { size: 12, color: THEME.white, lh: 15 });
+    S.hit = { deflect: { xIn: xIn, xOut: xOut, midY: midY, kY: kY, dirUp: dirUp, kX: kX } };
+  }
+
+  /* =====================================================================
+     场景：analogy —— 平抛 ↔ 电偏转
+     ===================================================================== */
+  function drawAnalogy(ctx, W, H, st, S) {
+    var compact = W < 620;
+    var gap = 16, colW = (W - 36 - gap) / 2;
+    var yTop = H * 0.20, yBot = H * 0.62;          /* 两块面板共用同一段竖直范围 */
+    var midR = (yTop + yBot) / 2;
+    var dropR = (yBot - yTop) / 2 * 0.72;          /* 电偏转：从中线向上偏 */
+
+    function panel(x0, title, color) {
+      box(ctx, x0, H * 0.06, colW, H * 0.86, title, color);
+    }
+    /* ---- 左：平抛 ---- */
+    var x0L = 12;
+    panel(x0L, '源 · 平抛运动（重力 mg 当主角）', THEME.green);
+    var oxL = x0L + colW * 0.18, oyL = yTop;
+    var spanL = colW * 0.72;
+    var dropL = yBot - yTop;
+    stroke(ctx, THEME.white, 3);
+    seg(ctx, x0L + 10, oyL, x0L + colW * 0.14, oyL);   /* 桌面/抛出点 */
+    text(ctx, 'v₀ 水平', oxL, oyL - 14, { size: 11.5, color: THEME.white, align: 'center' });
+    stroke(ctx, THEME.white, 2.4);
+    ctx.beginPath();
+    for (var i = 0; i <= 40; i++) {
+      var s = i / 40;
+      var xx = oxL + spanL * s, yy = oyL + dropL * s * s;
+      if (i === 0) { ctx.moveTo(xx, yy); } else { ctx.lineTo(xx, yy); }
+    }
+    ctx.stroke();
+    for (i = 0; i <= 4; i++) {
+      var s2 = i / 4;
+      var xT = oxL + spanL * s2, yT = oyL + dropL * s2 * s2;
+      fillCircle(ctx, xT, yT, 3, THEME.green);
+      stroke(ctx, THEME.soft2, 1); dash(ctx, [3, 3]);
+      seg(ctx, oxL, yT, xT, yT); seg(ctx, xT, yT, xT, oyL); nodash(ctx);
+    }
+    arrow(ctx, oxL + 4, oyL + 16, oxL + 4, oyL + 46, THEME.green, 2, 6);
+    text(ctx, 'mg', oxL - 6, oyL + 30, { size: 12, color: THEME.green, align: 'right', weight: 600 });
+    textBlock(ctx, compact ? '水平等距 · 竖直 1:3:5' : '水平：等距（匀速）　·　竖直：1 : 3 : 5 : 7（自由落体）',
+      x0L + 10, H * 0.80, colW - 20, { size: 11.5, color: THEME.grey, lh: 15 });
+
+    /* ---- 右：电偏转 ---- */
+    var x0R = 12 + colW + gap;
+    panel(x0R, '靶 · 电偏转（静电力 qE 当主角）', THEME.yellow);
+    var oxR = x0R + colW * 0.14, oyR = midR;
+    var spanR = colW * 0.74;
+    plateH(ctx, oxR - 6, oxR + spanR + 6, yTop, '+', THEME.red, false);
+    plateH(ctx, oxR - 6, oxR + spanR + 6, yBot, '−', THEME.blue, false);
+    stroke(ctx, THEME.soft2, 1); dash(ctx, [7, 5]);
+    seg(ctx, oxR - 34, oyR, oxR + spanR + 20, oyR); nodash(ctx);
+    arrow(ctx, oxR - 30, oyR, oxR - 4, oyR, THEME.white, 2.4, 7);
+    text(ctx, 'v₀', oxR - 34, oyR + 16, { size: 12, color: THEME.yellow, weight: 600 });
+    stroke(ctx, THEME.yellow, 2.4);
+    ctx.beginPath();
+    for (i = 0; i <= 40; i++) {
+      var s3 = i / 40;
+      var xx3 = oxR + spanR * s3, yy3 = oyR - dropR * s3 * s3;
+      if (i === 0) { ctx.moveTo(xx3, yy3); } else { ctx.lineTo(xx3, yy3); }
+    }
+    ctx.stroke();
+    for (i = 0; i <= 4; i++) {
+      var s4 = i / 4;
+      var xT4 = oxR + spanR * s4, yT4 = oyR - dropR * s4 * s4;
+      fillCircle(ctx, xT4, yT4, 3, THEME.yellow);
+      stroke(ctx, THEME.soft2, 1); dash(ctx, [3, 3]);
+      seg(ctx, oxR - 34, yT4, xT4, yT4); seg(ctx, xT4, yT4, xT4, oyR); nodash(ctx);
+    }
+    var arrowY2 = oyR - dropR * 0.45;
+    arrow(ctx, oxR + spanR * 0.55, oyR - 8, oxR + spanR * 0.55, arrowY2, THEME.yellow, 2, 6);
+    text(ctx, 'qE', oxR + spanR * 0.55 + 8, arrowY2 + 8, { size: 12, color: THEME.yellow, weight: 600 });
+    textBlock(ctx, compact ? '沿 v₀ 等距 · 垂直 1:3:5' : '沿 v₀：等距（匀速）　·　垂直 v₀：1 : 3 : 5 : 7（初速为零的匀加速）',
+      x0R + 10, H * 0.80, colW - 20, { size: 11.5, color: THEME.grey, lh: 15 });
+
+    /* 中间结论 */
+    text(ctx, '程序相同 · 对象不同 · 差异必须当场点破',
+      W / 2, H * 0.955, { size: Math.min(15, W * 0.026), color: THEME.yellow, align: 'center', weight: 700 });
+    S.hit = {};
+  }
+
+  /* =====================================================================
+     场景：tube —— 示波管（侧视结构 + 荧光屏正视图）
+     ===================================================================== */
+  function tubeSignal(st, tau) {
+    /* 返回某一时刻的 (UX, UY) —— 单位 V */
+    var m = st.tubeMode;
+    var UY = 0, UX = 0;
+    var ph = 2 * Math.PI * tau;
+    if (m === 'pointY') { UY = st.UY; UX = 0; }
+    else if (m === 'pointX') { UY = 0; UX = st.UX; }
+    else if (m === 'yline') { UY = st.UY * Math.sin(ph); UX = 0; }
+    else if (m === 'xshift') { UY = st.UY * Math.sin(ph); UX = st.UX; }
+    else if (m === 'scan') { UY = st.UY * Math.sin(ph); UX = st.UX * (2 * tau - 1); }
+    else { UY = 0; UX = 0; }
+    return { UX: UX, UY: UY };
+  }
+
+  function drawTube(ctx, W, H, st, S) {
+    var compact = W < 620;
+    var sideW = compact ? W * 0.56 : W * 0.60;
+    var axY = H * 0.34;
+    var tubeH = Math.min(96, H * 0.20);
+    var x0 = W * 0.05, x1 = sideW - 10;
+    var mid = (x0 + x1) / 2;
+
+    /* 管壳 */
+    stroke(ctx, THEME.soft, 1.2);
+    ctx.strokeRect(x0, axY - tubeH / 2, x1 - x0, tubeH);
+    /* 电子枪 */
+    var gw = (x1 - x0) * 0.17;
+    stroke(ctx, THEME.white, 2.2);
+    ctx.strokeRect(x0 + 4, axY - tubeH * 0.26, gw, tubeH * 0.52);
+    text(ctx, '电子枪', x0 + 4 + gw / 2, axY + tubeH * 0.62, { size: 11.5, color: THEME.white, align: 'center', weight: 600 });
+    /* 两组偏转电极（极板本体为白色几何；红蓝只用在极性符号上） */
+    var xXX = x0 + (x1 - x0) * 0.36, xYY = x0 + (x1 - x0) * 0.58;
+    var pw = (x1 - x0) * 0.11;
+    /* XX′：两块竖直板（电场水平 ⇒ 亮斑左右移动） */
+    plateV(ctx, axY - tubeH * 0.34, axY + tubeH * 0.34, xXX, '+', THEME.white, false);
+    plateV(ctx, axY - tubeH * 0.34, axY + tubeH * 0.34, xXX + pw, '−', THEME.white, false);
+    text(ctx, '+', xXX - 8, axY - 8, { size: 12, color: THEME.red, align: 'center', weight: 700 });
+    text(ctx, '−', xXX + pw + 8, axY + 8, { size: 12, color: THEME.blue, align: 'center', weight: 700 });
+    text(ctx, 'XX′', xXX + pw / 2, axY - tubeH * 0.52, { size: 11.5, color: THEME.white, align: 'center', weight: 600 });
+    text(ctx, '管左右', xXX + pw / 2, axY + tubeH * 0.56, { size: 10.5, color: THEME.grey, align: 'center' });
+    /* YY′：两块水平板（电场竖直 ⇒ 亮斑上下移动） */
+    plateH(ctx, xYY, xYY + pw * 1.5, axY - tubeH * 0.30, '+', THEME.white, false);
+    plateH(ctx, xYY, xYY + pw * 1.5, axY + tubeH * 0.30, '−', THEME.white, false);
+    text(ctx, '+', xYY + pw * 0.75, axY - tubeH * 0.30 - 10, { size: 12, color: THEME.red, align: 'center', weight: 700 });
+    text(ctx, '−', xYY + pw * 0.75, axY + tubeH * 0.30 + 10, { size: 12, color: THEME.blue, align: 'center', weight: 700 });
+    text(ctx, 'YY′', xYY + pw * 0.75, axY - tubeH * 0.52, { size: 11.5, color: THEME.white, align: 'center', weight: 600 });
+    text(ctx, '管上下', xYY + pw * 0.75, axY + tubeH * 0.56, { size: 10.5, color: THEME.grey, align: 'center' });
+    /* 轴线 */
+    stroke(ctx, THEME.soft2, 1); dash(ctx, [6, 5]); seg(ctx, x0, axY, x1, axY); nodash(ctx);
+
+    /* 当前时刻的偏转量 */
+    var sig = tubeSignal(st, clamp(st.t, 0, 1));
+    var Yy = P.tubeY(sig.UY, P.TB_U0, P.TB_L, P.TB_D, P.TB_LSCREEN);
+    var Yx = P.tubeY(sig.UX, P.TB_U0, P.TB_L, P.TB_D, P.TB_LSCREEN);
+    var yMax = P.tubeY(P.TB_UYMAX, P.TB_U0, P.TB_L, P.TB_D, P.TB_LSCREEN);
+    var xMax = P.tubeY(P.TB_UXMAX, P.TB_U0, P.TB_L, P.TB_D, P.TB_LSCREEN);
+
+    /* 电子束（示意） */
+    var beamY = axY - (Yy / Math.max(yMax, 1e-9)) * tubeH * 0.30;
+    stroke(ctx, THEME.yellow, 2.2);
+    ctx.beginPath();
+    ctx.moveTo(x0 + gw + 8, axY);
+    ctx.lineTo(xXX, axY);
+    ctx.lineTo(xYY + pw * 0.75, beamY);
+    ctx.lineTo(x1, beamY);
+    ctx.stroke();
+    particle(ctx, x1 - 6, beamY, 4, THEME.blue, '−', true);
+    text(ctx, '电子束', mid * 0.7, axY - tubeH * 0.62, { size: 11.5, color: THEME.yellow, align: 'center' });
+
+    /* ---- 荧光屏正视图 ---- */
+    var sx = sideW + 8, sw = W - sx - 12, sy = H * 0.08, sh = compact ? H * 0.50 : H * 0.56;
+    if (sw < 90) { sw = 90; }
+    var size = Math.min(sw, sh);
+    var cxS = sx + sw / 2, cyS = sy + sh / 2;
+    var half = size / 2 - 12;
+    box(ctx, cxS - half, cyS - half, half * 2, half * 2, '荧光屏（从右向左看）', THEME.soft2);
+    /* 坐标轴 */
+    stroke(ctx, THEME.soft2, 1);
+    seg(ctx, cxS - half, cyS, cxS + half, cyS);
+    seg(ctx, cxS, cyS - half, cxS, cyS + half);
+    text(ctx, 'X', cxS + half - 12, cyS - 12, { size: 11, color: THEME.grey });
+    text(ctx, 'Y', cxS + 12, cyS - half + 12, { size: 11, color: THEME.grey });
+    text(ctx, 'X′', cxS - half + 6, cyS - 12, { size: 11, color: THEME.grey });
+    text(ctx, 'Y′', cxS + 12, cyS + half - 12, { size: 11, color: THEME.grey });
+
+    /* 亮斑与余晖 */
+    var kSX = half / Math.max(xMax, 1e-12), kSY = half / Math.max(yMax, 1e-12);
+    var spot = function (tau) {
+      var s = tubeSignal(st, tau);
+      return {
+        x: cxS + P.tubeY(s.UX, P.TB_U0, P.TB_L, P.TB_D, P.TB_LSCREEN) * kSX,
+        y: cyS - P.tubeY(s.UY, P.TB_U0, P.TB_L, P.TB_D, P.TB_LSCREEN) * kSY
+      };
+    };
+    /* 余晖轨迹 */
+    var persist = (st.tubeMode === 'scan' || st.tubeMode === 'yline' || st.tubeMode === 'xshift');
+    if (persist) {
+      stroke(ctx, 'rgba(255,255,0,0.38)', 2);
+      ctx.beginPath();
+      var N = 220;
+      for (var i = 0; i <= N; i++) {
+        var tau = (st.tubeMode === 'scan') ? i / N : (st.tubeMode === 'yline' ? i / N : 0);
+        var pt = (st.tubeMode === 'yline' || st.tubeMode === 'scan') ? spot(tau) : spot(0);
+        if (i === 0) { ctx.moveTo(pt.x, pt.y); } else { ctx.lineTo(pt.x, pt.y); }
+      }
+      ctx.stroke();
+      if (st.tubeMode === 'xshift') {
+        /* Y 在变、X 恒定：屏上是一条会被"推着走"的竖线 —— 用当前时刻的一条竖线表示 */
+        stroke(ctx, 'rgba(255,255,0,0.38)', 2);
+        ctx.beginPath();
+        for (i = 0; i <= 60; i++) {
+          var p2 = spot(i / 60);
+          var xx = cxS + (sig.UX > 0 ? 1 : sig.UX < 0 ? -1 : 0) * Math.abs(P.tubeY(sig.UX, P.TB_U0, P.TB_L, P.TB_D, P.TB_LSCREEN)) * kSX;
+          if (i === 0) { ctx.moveTo(xx, p2.y); } else { ctx.lineTo(xx, p2.y); }
+        }
+        ctx.stroke();
+      }
+    }
+    var cur = spot(clamp(st.t, 0, 1));
+    dot(ctx, cur.x, cur.y, 5, THEME.yellow, true);
+
+    /* 底部：当前电压与屏上位移 */
+    var by = sy + sh + 8;
+    if (by < H - 20) {
+      text(ctx, 'U_Y = ' + ufmt(sig.UY) + '　U_X = ' + ufmt(sig.UX),
+        12, by + 10, { size: 12.5, color: THEME.white, weight: 600 });
+      text(ctx, '屏上位移 Y = ' + lfmt(Yy) + '（竖直）　X = ' + lfmt(Yx) + '（水平）',
+        12, by + 30, { size: 12, color: THEME.yellow });
+      if (!compact) {
+        text(ctx, 'Y ∝ U：电压的变化被线性标定成亮斑的位移',
+          W - 12, by + 10, { size: 12, color: THEME.grey, align: 'right' });
+      }
+    }
+    S.hit = { screen: { cx: cxS, cy: cyS, half: half, kSX: kSX, kSY: kSY } };
+  }
+
+  /* =====================================================================
+     场景：edge —— 模型边界（边缘效应）
+     ===================================================================== */
+  function drawEdge(ctx, W, H, st, S) {
+    var compact = W < 620;
+    var d = st.d, l = 0.06;
+    var midY = H * 0.30;
+    var halfD = Math.min(70, H * 0.13);
+    var xa = W * 0.28, xb = W * 0.72;
+
+    /* 极板 */
+    plateH(ctx, xa, xb, midY - halfD, '+', THEME.red, true);
+    plateH(ctx, xa, xb, midY + halfD, '−', THEME.blue, true);
+    /* 中段：匀强（等距平行箭头） */
+    var xsU = [];
+    for (var i = 1; i <= 6; i++) { xsU.push(xa + (xb - xa) * i / 7); }
+    fieldLinesV(ctx, midY - halfD + 6, midY + halfD - 6, xsU, 'rgba(255,255,255,0.28)');
+    text(ctx, compact ? '中段：匀强电场' : '中段：匀强电场（教材说"看作匀强电场"指的就是这里）',
+      W / 2, midY, { size: 12, color: THEME.white, align: 'center' });
+
+    /* 两端：边缘效应（弯曲的场线，范围 ∝ d） */
+    var edgeW = compact ? clamp(halfD * 1.6, 16, W * 0.10) : clamp(halfD * 3.0, 30, W * 0.16);
+    stroke(ctx, THEME.purple, 1.2);
+    for (i = 0; i < 5; i++) {
+      var t = i / 4;
+      ctx.beginPath();
+      ctx.moveTo(xa, midY - halfD + 2 * halfD * t);
+      ctx.bezierCurveTo(xa - edgeW * 0.55, midY - halfD + 2 * halfD * t,
+        xa - edgeW * 0.45, midY - halfD * 1.5 + 2 * halfD * t * 0.9,
+        xa - edgeW, midY - halfD * 1.35 + 2 * halfD * t * 1.5);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(xb, midY - halfD + 2 * halfD * t);
+      ctx.bezierCurveTo(xb + edgeW * 0.55, midY - halfD + 2 * halfD * t,
+        xb + edgeW * 0.45, midY - halfD * 1.5 + 2 * halfD * t * 0.9,
+        xb + edgeW, midY - halfD * 1.35 + 2 * halfD * t * 1.5);
+      ctx.stroke();
+    }
+    text(ctx, compact ? '边缘：场线弯曲' : '两端：场线向外弯曲', xa - edgeW - 4, midY - halfD * 1.9,
+      { size: 11.5, color: THEME.purple, align: compact ? 'left' : 'center' });
+    if (!compact) {
+      text(ctx, '（边缘效应）', xb + edgeW + 6, midY - halfD * 1.7,
+        { size: 11.5, color: THEME.purple, align: 'center' });
+    }
+    /* 边缘影响范围 ∝ d */
+    dimH(ctx, midY + halfD + 26, xa - edgeW, xa, compact ? '≈ 几倍 d' : '边缘影响 ≈ 几倍 d', THEME.purple);
+    text(ctx, 'd = ' + lfmt(d), compact ? W - 12 : xb + 12, midY + halfD + 12,
+      { size: 12, color: THEME.white, align: compact ? 'right' : 'left' });
+
+    /* 下方：能量悖论（盒子高度按文字行数算，不留空） */
+    var by = H * 0.60;
+    var lines = compact ? [
+      '电子射入 → 极板静电感应 → 感应电流',
+      '按功率算与按动能定理算，结果不一致',
+      '问题出在"忽略边缘效应"，能量依然守恒'
+    ] : [
+      '电子射入偏转电场 → 在极板上引起静电感应 → 感应电荷随距离变化 → 出现感应电流',
+      '按"电源输出功率"算一遍、按"动能定理"算一遍 —— 两种算法结果不一致',
+      '论者的结论：问题出在"忽略边缘效应"这个近似上，系统总能量依然守恒'
+    ];
+    var lh5 = compact ? 15 : 18;
+    var rowsN = 0, i5;
+    for (i5 = 0; i5 < lines.length; i5++) {
+      rowsN += wrapLines(ctx, '· ' + lines[i5], W - 48, compact ? 11 : 12.5).length;
+    }
+    var boxH = 32 + rowsN * lh5 + (compact ? 6 : 8);
+    box(ctx, 12, by, W - 24, boxH, '环节⑤ · 一个"能量不守恒"的悖论（外01）', THEME.purple);
+    var ly = by + 32;
+    for (i = 0; i < lines.length; i++) {
+      var got = textBlock(ctx, '· ' + lines[i], 22, ly, W - 48,
+        { size: compact ? 11 : 12.5, color: i === 2 ? THEME.white : THEME.grey, lh: lh5 });
+      ly += got * lh5 + (compact ? 5 : 7);
+    }
+    textBlock(ctx, '当计算违反能量守恒时，先怀疑模型，而不是先怀疑能量守恒。',
+      W / 2, H * 0.955, W - 24, { size: Math.max(12, Math.min(16, W * 0.026)), color: THEME.yellow, align: 'center', weight: 700, lh: 18 });
+    S.hit = {};
+  }
+
+  /* =====================================================================
+     场景：apps —— 质子疗法 / 直线加速器
+     ===================================================================== */
+  function drawApps(ctx, W, H, st, S) {
+    var compact = W < 620;
+    var m = P.M_P, q = P.E_CHG;
+    var len = st.len, v = st.v;
+    var E = P.beamE(v, q, m, len);
+    var midY = H * 0.34;
+    var x0 = W * 0.10, x1 = W * 0.90;
+
+    /* 加速管 */
+    stroke(ctx, THEME.white, 2);
+    ctx.strokeRect(x0, midY - 22, x1 - x0, 44);
+    text(ctx, '加速管（真空，长 ' + num(len, 1) + ' m）', W / 2, midY - 40,
+      { size: 12.5, color: THEME.white, align: 'center', weight: 600 });
+    /* 离子源 → 靶 */
+    text(ctx, '离子源', compact ? x0 : x0 - 8, compact ? midY - 38 : midY,
+      { size: 12, color: THEME.blue, align: compact ? 'left' : 'right', weight: 600 });
+    text(ctx, '靶', x1 + 8, midY, { size: 12, color: THEME.red, align: 'left', weight: 600 });
+    /* 质子 */
+    for (var i = 0; i < 5; i++) {
+      var px = x0 + (x1 - x0) * (0.12 + i * 0.18);
+      dot(ctx, px, midY, 5, THEME.red, i === 4);
+      text(ctx, '+', px, midY, { size: 8, color: THEME.bg, align: 'center', weight: 700 });
+    }
+    /* 电场箭头 */
+    arrow(ctx, x0 + 10, midY + 40, x1 - 10, midY + 40, THEME.red, 1.6, 6);
+    text(ctx, '匀强电场 E，方向由粒子源指向靶', W / 2, midY + 58,
+      { size: 12, color: THEME.red, align: 'center' });
+    /* 速度箭头 */
+    arrow(ctx, x1 - 96, midY - 40, x1 - 16, midY - 40, THEME.yellow, 3, 8);
+    text(ctx, 'v = ' + vfmt(v), x1 - 56, midY - 58, { size: 12.5, color: THEME.yellow, align: 'center', weight: 600 });
+
+    /* 能量条 */
+    var by = H * 0.56;
+    var Ek = P.beamKE(v, m);
+    textBlock(ctx, '动能 Ek = ½mv² = ' + kefmt(Ek) + ' = ' + evfmt(Ek), 12, by, W - 24,
+      { size: 12.5, color: THEME.yellow, weight: 600, lh: 16 });
+    bar(ctx, 12, by + 16, W - 24, 26, 1, THEME.yellow, THEME.yellowSoft);
+    textBlock(ctx, '动能定理：Eql = ½mv²  ⇒  E = mv²/(2ql) = ' + efmt(E) , 12, by + 66, W - 24,
+      { size: 12.5, color: THEME.white, weight: 600, lh: 16 });
+
+    /* 安全与应用 */
+    box(ctx, 12, H * 0.78, W - 24, H * 0.19, '应用与安全（环节⑥）', THEME.soft2);
+    if (compact) {
+      text(ctx, '直线加速器放疗：不需要放射源，不开机时完全没有射线', 24, H * 0.78 + 34,
+        { size: 11, color: THEME.white });
+      text(ctx, '范德格拉夫：尖端放电起电 → 高压 → 加速粒子', 24, H * 0.78 + 52,
+        { size: 11, color: THEME.grey });
+    } else {
+      textBlock(ctx, '· 直线加速器放疗：不需要放射源，不开机时完全没有射线，更加安全，也便于管理（教材 P48）',
+        22, H * 0.78 + 32, W - 44, { size: 12, color: THEME.white, lh: 16 });
+      textBlock(ctx, '· 范德格拉夫静电加速器：利用尖端放电的原理起电，产生高电压，再用高电压对带电粒子加速（教参 P59）',
+        22, H * 0.78 + 56, W - 44, { size: 12, color: THEME.grey, lh: 16 });
+    }
+    S.hit = {};
+  }
+
+  /* =====================================================================
+     场景：chain —— 判断链四格表
+     ===================================================================== */
+  function drawChain(ctx, W, H, st, S) {
+    var compact = W < 620;
+    var rows = [
+      { s: '平行板加速（匀强，求 v）', f: '静电力 qE（恒力）', mot: '匀变速直线', way: '两条都行；只求 v 用动能定理' },
+      { s: '非匀强电场加速', f: '静电力（变力）', mot: '变加速直线', way: '只能用动能定理 qU = ½mv²' },
+      { s: '偏转（垂直射入匀强电场）', f: '静电力（恒力）⊥ v₀', mot: '匀变速曲线（类平抛）', way: '分解：沿 v₀ 匀速 ＋ 垂直匀加速' },
+      { s: '示波管（两组电极）', f: '同上', mot: '两个方向偏转的合成', way: 'y ∝ U：把电压变化标定为位移' }
+    ];
+    var heads = ['情境', '受什么力', '什么运动', '选哪条思路（＋适用条件）'];
+    var left = 12, top = H * 0.06, wW = W - 24, hH = H * 0.86;
+    var i, c, r;
+
+    /* 窄屏：四张竖排卡片，避免四列挤成豆腐块 */
+    if (compact) {
+      var chH = hH / rows.length;
+      for (r = 0; r < rows.length; r++) {
+        var cy = top + r * chH;
+        stroke(ctx, r === rows.length - 1 ? THEME.yellow : THEME.soft2, 1.2);
+        ctx.strokeRect(left, cy + 2, wW, chH - 6);
+        text(ctx, rows[r].s, left + 8, cy + 15, { size: 11, color: THEME.white, weight: 600 });
+        text(ctx, rows[r].f + '　·　' + rows[r].mot, left + 8, cy + 32, { size: 10.5, color: THEME.grey });
+        textBlock(ctx, '→ ' + rows[r].way, left + 8, cy + 50, wW - 16,
+          { size: 10.5, color: THEME.yellow, weight: 600, lh: 14 });
+      }
+      S.hit = {};
+      return;
+    }
+
+    var headH = 34;
+    var rowH = (hH - headH) / rows.length;
+    var cw = [wW * 0.20, wW * 0.20, wW * 0.20, wW * 0.40];
+    var cx = [left];
+    for (c = 1; c < 4; c++) { cx.push(cx[c - 1] + cw[c - 1]); }
+
+    ctx.fillStyle = 'rgba(255,255,255,0.06)';
+    ctx.fillRect(left, top, wW, headH);
+    for (c = 0; c < 4; c++) {
+      text(ctx, heads[c], cx[c] + cw[c] / 2, top + headH / 2,
+        { size: 12.5, color: THEME.white, align: 'center', weight: 600 });
+    }
+    for (r = 0; r < rows.length; r++) {
+      var ry = top + headH + r * rowH;
+      if (r % 2 === 1) { ctx.fillStyle = 'rgba(255,255,255,0.03)'; ctx.fillRect(left, ry, wW, rowH); }
+      var items = [rows[r].s, rows[r].f, rows[r].mot, rows[r].way];
+      for (c = 0; c < 4; c++) {
+        var pl = items[c].split('\n');
+        for (var k = 0; k < pl.length; k++) {
+          text(ctx, pl[k], cx[c] + cw[c] / 2,
+            ry + rowH / 2 + (k - (pl.length - 1) / 2) * 17,
+            {
+              size: 12, align: 'center',
+              color: (c === 3) ? THEME.yellow : (c === 0 ? THEME.white : THEME.grey),
+              weight: (c === 3 || c === 0) ? 600 : 400
+            });
+        }
+      }
+    }
+    stroke(ctx, THEME.soft2, 1);
+    for (c = 0; c <= 4; c++) {
+      var gx = left + (c === 4 ? wW : cx[c]);
+      seg(ctx, gx, top, gx, top + hH);
+    }
+    for (r = 0; r <= rows.length; r++) { seg(ctx, left, top + headH + r * rowH, left + wW, top + headH + r * rowH); }
+    ctx.strokeRect(left, top, wW, hH);
+    S.hit = {};
+  }
+
+  /* =====================================================================
+     场景：conclusion —— 三句话带走
+     ===================================================================== */
+  function drawConclusion(ctx, W, H, st, S) {
+    var lines = st.lines || [];
+    var compact = W < 620;
+    var y = H * 0.12;
+    for (var i = 0; i < lines.length; i++) {
+      var L = lines[i];
+      var sz = L.size || (compact ? 14 : 18);
+      if (compact) { sz = Math.min(sz, 14); }
+      var lh = sz + 7;
+      var n = textBlock(ctx, L.t || L, W / 2, y, W - 24, {
+        size: sz, color: L.c || THEME.white, align: 'center',
+        weight: (L.size && L.size >= 18) ? 700 : 400, lh: lh
+      });
+      y += n * lh + (compact ? 12 : 24);
+    }
+    S.hit = {};
+  }
+
+  /* =====================================================================
+     总入口
+     ===================================================================== */
+  function render(cv, st) {
+    var f = fitCanvas(cv), ctx = f.ctx, W = f.W, H = f.H, i;
+    /* 每一帧都把上下文状态清干净 —— 保证"上一步/下一步"逐字节一致 */
+    ctx.setLineDash([]);
+    ctx.lineDashOffset = 0;
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = 'rgba(0,0,0,0)';
+    ctx.lineWidth = 1;
+    ctx.lineCap = 'butt';
+    ctx.lineJoin = 'miter';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = THEME.bg; ctx.fillRect(0, 0, W, H);
+    var S = { W: W, H: H, hit: {} };
+    switch (st.scene) {
+      case 'intro': drawIntro(ctx, W, H, st, S); break;
+      case 'accel': drawAccel(ctx, W, H, st, S); break;
+      case 'cyl': drawCyl(ctx, W, H, st, S); break;
+      case 'nonuni': drawNonuni(ctx, W, H, st, S); break;
+      case 'deflect': drawDeflect(ctx, W, H, st, S); break;
+      case 'analogy': drawAnalogy(ctx, W, H, st, S); break;
+      case 'tube': drawTube(ctx, W, H, st, S); break;
+      case 'edge': drawEdge(ctx, W, H, st, S); break;
+      case 'apps': drawApps(ctx, W, H, st, S); break;
+      case 'chain': drawChain(ctx, W, H, st, S); break;
+      case 'conclusion': drawConclusion(ctx, W, H, st, S); break;
+      default: drawIntro(ctx, W, H, st, S); break;
+    }
+    return { S: S };
+  }
+
+  global.VizRender = {
+    render: render, fitCanvas: fitCanvas, THEME: THEME,
+    vfmt: vfmt, efmt: efmt, ufmt: ufmt, lfmt: lfmt, afmt: afmt,
+    kefmt: kefmt, evfmt: evfmt, mfmt: mfmt, sci: sci, sup: sup, num: num,
+    tubeSignal: tubeSignal
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* =====================================================================
+   viz_ce_steps.js —— 25 步脚本（6 幕）· 10.5 带电粒子在电场中的运动
+
+     第一幕 · 从一台加速器说起（2 步）：医用直线加速器 → 受什么力（qE 与 mg）
+     第二幕 · 加速：两把钥匙（5 步）：两条通道 → 判据 → 非匀强 → 多级圆筒 → l ∝ √n
+     第三幕 · 偏转：把它拆成两段（9 步）：先画后推 → 分解 → 定量 → θ → 类比
+                                     → 例题2 → 与 q、m 无关 → 出界 → 能量通道
+     第四幕 · 示波管（5 步）：认结构 → 谁管上下左右 → 竖线 → 稳定波形 → y ∝ U
+     第五幕 · 模型边界与应用（2 步）：边缘效应 → 质子疗法
+     第六幕 · 收束（2 步）：判断链四格表 → 三句话带走
+
+   设计原则（同 10.1 / 10.2 / 10.3 / 10.4）：
+     · 每一步 = 一个纯状态；apply(st, i) 重建该步初态 → 前后翻页永远精确
+     · allow 是唯一交互开关；hint 说能拖/能点的必须在 allow 里，allow 开着的必须在提示里提到
+     · 每一步都能指回教案：环节①–⑦、官方七问／四问／补充五问、评价点 E1–E8
+   ===================================================================== */
+(function (global) {
+  'use strict';
+
+  var P = global.VizPhys;
+
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+
+  /* ---------- 状态 ---------- */
+  function baseState() {
+    return {
+      step: 0, scene: 'intro',
+      act: '', title: '', hint: '', note: '', formula: '', lines: [],
+      /* 通用 */
+      particle: 'e', t: 0.6,
+      /* 平行板加速 / 偏转 */
+      U: 200, d: 0.02, l: 0.06, v0: 3.0e7, U0: 1000, judge: 'speed',
+      /* 多级圆筒 */
+      n: 6, u: 500, T: 1.0e-7,
+      /* 示波管 */
+      tubeMode: 'flat', UX: 0, UY: 0,
+      /* 质子疗法 */
+      len: 4.0, v: 1.0e7,
+      show: {}, allow: {}, key: ''
+    };
+  }
+
+  function mk(act, title, o) {
+    o = o || {};
+    return {
+      act: act, title: title, hint: o.hint || '', note: o.note || '', formula: o.formula || '',
+      scene: o.scene || 'intro', allow: o.allow || {}, show: o.show || {}, init: o.init || null,
+      lines: o.lines || null
+    };
+  }
+
+  var A1 = '一 · 从一台加速器说起', A2 = '二 · 加速：两把钥匙', A3 = '三 · 偏转：把它拆成两段',
+    A4 = '四 · 示波管：电压变位移', A5 = '五 · 模型边界与应用', A6 = '六 · 收束';
+
+  var STEPS = [
+    /* ================= 第一幕 · 从一台加速器说起（环节①） ================= */
+    mk(A1, '医用电子直线加速器：电子凭什么被加速？', {
+      scene: 'intro', allow: {}, show: {},
+      hint: '这一屏不用拖：先把教材问题栏那句话挂在墙上 —— 电子的速度是被什么"推"上去的？',
+      note: '教材 P44 问题栏原句：<b>"电子在加速器中是受到什么力的作用而加速的呢？"</b><br>' +
+        '情境事实：医院里治肿瘤的放射治疗，很多不是用放射性物质，而是用<b>加速器</b> —— ' +
+        '电子被加速后轰击重金属靶，产生射线（教材 P44）。<br>' +
+        '课堂动作：请三位同学说出猜想，教师<b>先不纠正</b>，把答案分成两列 —— ' +
+        '<b>"力"一类</b>（磁铁、发动机……）与 <b>"能量"一类</b>（电压……）。' +
+        '这两列就是本课两条通道的伏笔。',
+      formula: '电子在加速器中是受到什么力的作用而加速的呢？'
+    }),
+    mk(A1, '它受的力：静电力 qE 有多大？', {
+      scene: 'accel', allow: { U: true, d: true, particle: true }, show: { bottom: true, gravity: true },
+      hint: '拖<b>两板电压 U</b>、<b>板距 d</b>（合起来决定场强 E = U/d），或切换<b>粒子</b>：看 qE 与 mg 差多少个数量级。',
+      note: '教参 P58 官方判据原句：<b>"在处理带电粒子在电场中运动的问题时，通常重力可以忽略（本章第3节例题已提供了依据）。"</b><br>' +
+        '但"通常"不等于"永远"：<br>' +
+        '· <b>电子、质子、离子</b>等微观粒子 —— qE 比 mg 大十几个数量级，重力可以扔掉；<br>' +
+        '· <b>带电油滴、带电小球、带电微粒</b>等宏观物体 —— 必须先比较 mg 与 qE 的量级再决定（密立根油滴实验就是靠两者平衡做的）。<br>' +
+        '这一条要写进板书"适用条件"格，整节课都用它。',
+      formula: 'E = U/d　｜　静电力 F = qE　｜　判据：qE ≫ mg ⇒ 忽略重力',
+      init: function (st) { st.U = 90; st.d = 0.062; st.particle = 'e'; st.t = 0.65; }
+    }),
+
+    /* ================= 第二幕 · 加速：两把钥匙（环节② ★重点） ================= */
+    mk(A2, '两条通道：同一条结论，两条路', {
+      scene: 'accel', allow: { U: true, d: true, particle: true }, show: { bottom: true, dual: true },
+      hint: '拖<b>电压 U</b> 或<b>板距 d</b>：两条通道的中间量完全不同，可末速度 v 始终一模一样。',
+      note: '官方七问（教参 P58）的（1）–（5）问：<br>' +
+        '（1）粒子做什么运动？→ 匀变速直线；（2）a 多大？→ a = qE/m = qU/(md)；' +
+        '（3）v 多大？→ v² = 2ad；（4）静电力做功多少？→ W = qU；（5）动能、速度？→ qU = ½mv²。<br>' +
+        '两条通道的<b>中间量完全不同</b>（一条要 a 和 t，一条只要首末状态），' +
+        '但落点是同一个 <b>v = √(2qU/m)</b> —— 板书一句："同一条结论，两条通道。"',
+      formula: '力与运动：a = qU/(md) → v² = 2ad　｜　功与能量：qU = ½mv²　⇒　v = √(2qU/m)',
+      init: function (st) { st.U = 90; st.d = 0.062; st.particle = 'e'; st.t = 0.85; }
+    }),
+    mk(A2, '判据：看题目问什么', {
+      scene: 'accel', allow: { judge: true }, show: { bottom: true, judge: true },
+      hint: '点<b>「要用到时间」／「只要位移、速率」</b>两个按钮，看哪条通道被点亮。',
+      note: '教材 P44 原句：<b>"当解决的问题属于匀强电场且涉及运动时间等描述运动过程的物理量时，' +
+        '适合运用前一种思路分析；当问题只涉及位移、速率等动能定理公式中的物理量或非匀强电场情景时，' +
+        '适合运用后一种思路分析。"</b><br>' +
+        '官方七问的第（6）问是<b>强制比较优劣</b>：让学生自己说出选择判据，再与教材原句逐字对照。' +
+        '这条判据不是"哪个高级用哪个"，而是"题目问什么就用哪个"。',
+      formula: '涉及时间 ⇒ 力与运动　｜　只涉及位移、速率 或 非匀强电场 ⇒ 功与能量',
+      init: function (st) { st.judge = 'speed'; st.U = 90; st.d = 0.062; st.particle = 'e'; }
+    }),
+    mk(A2, '非匀强电场：能量通道照用，力与运动卡住', {
+      scene: 'nonuni', allow: { t: true }, show: {},
+      hint: '拖<b>电子位置</b>：越靠近尖端场强越大、a 一直在变 —— 两条通道给出的末速度仍然一致。',
+      note: '官方七问第（7）问是本节<b>判决性的一问</b>：<b>"如果加速电场是非匀强电场，其他各量不变，' +
+        '粒子到达 B 板的动能为多大？速度为多大？"</b>（教参 P58）<br>' +
+        '课堂动作：先请全班"试着求 a"—— 会卡住（a 不是常量，匀变速公式不能用）；' +
+        '再回到能量通道 qΔφ = ½mv²，一步到位。<br>' +
+        '这就是"能量观点更普适"的<b>证据</b>，不是教师的一句口号。',
+      formula: '力与运动：a 不是常量 ⇒ 只能一段一段数值积分　｜　功与能量：qΔφ = ½mv²（Δφ = 5.68 kV）',
+      init: function (st) { st.t = 0.55; }
+    }),
+    mk(A2, '例题1：多级圆筒的"踏准节奏"', {
+      scene: 'cyl', allow: { n: true, u: true, t: true }, show: {},
+      hint: '拖<b>圆筒数 n</b>、<b>间隙电压 u</b>，或拖<b>电子位置</b>走一遍：只在间隙被加速，圆筒内部匀速。',
+      note: '前置知识（必须先补）：<b>金属导体内部的电场强度等于 0</b>（联系 9.3 静电平衡，教参 P58 点名要联系）。<br>' +
+        '教材 P45 三问：电子在圆筒里面受不受力？（不受力 ⇒ 匀速直线）　在哪里被加速？（只在相邻圆筒的间隙）　' +
+        '每过一个间隙只增加 eu 的动能，圆筒长度怎么排？（越来越长）<br>' +
+        '课堂最容易被追问的一问：<b>"圆筒里没有电场，电子为什么不会停下来？"</b> —— ' +
+        '答：没有力就没有加速度，而不是没有速度。',
+      formula: '圆筒内：E = 0 ⇒ 匀速　｜　间隙内：每过一次 ΔEk = eu　⇒　vₙ = √(2neu/m)',
+      init: function (st) { st.n = 6; st.u = 500; st.T = 1.0e-7; st.t = 0.42; }
+    }),
+    mk(A2, '第 n 个圆筒的长度与 √n 成正比', {
+      scene: 'cyl', allow: { n: true, u: true }, show: { law: true },
+      hint: '拖<b>圆筒数 n</b>（或<b>间隙电压 u</b>）：把 n 个点画出来 —— 全部落在一条过原点的直线上。',
+      note: '教材 P45 的定量结论：<b>l = (T/2)·√(2neu/m)，圆筒长度跟圆筒序号的平方根成正比。</b><br>' +
+        '推导只有两句：① 在圆筒里匀速 ⇒ 圆筒长度 = vₙ × 半个周期；② 每过一个间隙 ΔEk = eu ⇒ vₙ ∝ √n。<br>' +
+        '"踏准节奏"的含义：电子匀速穿过每个圆筒的时间<b>恰好等于交变电压周期的一半</b>，' +
+        '于是它每到一个间隙，该间隙的电场恰好变为"推它"的方向。',
+      formula: 'lₙ = vₙ·T/2 = (T/2)·√(2neu/m)　⇒　lₙ ∝ √n　（lₙ/l₁ = √n）',
+      init: function (st) { st.n = 8; st.u = 500; st.T = 1.0e-7; }
+    }),
+
+    /* ================= 第三幕 · 偏转：把它拆成两段（环节③ ★难点） ================= */
+    mk(A3, '先画后推：初速度与受力图示', {
+      scene: 'deflect', allow: { particle: true }, show: { bottom: true },
+      hint: '切换<b>粒子</b>（电子／一价氢离子）：初速度水平、静电力竖直 —— 两者垂直，而且静电力是恒力。',
+      note: '官方要求（教参 P58）：<b>"引导学生画出粒子初始时刻的初速度与受力图示，组织学生独立分析粒子的运动性质。"</b><br>' +
+        '课堂动作：<b>先不讲</b>，屏幕只给情境图，30 秒内在草稿纸上画出初速度方向与静电力方向，同桌互检。<br>' +
+        '收口只用官方原句的通俗版：<b>"静电力方向与初速度方向垂直、且静电力是恒力，所以粒子做匀变速曲线运动。"</b><br>' +
+        '注意：电子带负电，受力方向与电场方向<b>相反</b> —— 方向问题一律由受力图示判断，不靠背。',
+      formula: '力 ⊥ v₀ 且为恒力　⇒　匀变速曲线运动（轨迹是抛物线）',
+      init: function (st) { st.U = 200; st.d = 0.02; st.l = 0.06; st.v0 = 3.0e7; st.particle = 'e'; }
+    }),
+    mk(A3, '拆成两段：沿 v₀ 匀速 ＋ 垂直方向匀加速', {
+      scene: 'deflect', allow: { U: true, v0: true }, show: { split: true, bottom: true },
+      hint: '拖<b>偏转电压 U</b>、<b>入射速度 v₀</b>：灰色投影线里，水平方向始终等距、竖直方向始终 1 : 3 : 5。',
+      note: '官方关键一问（教参 P58）：<b>"用什么方法分析处理这类曲线运动问题？"</b> —— 官方用词是' +
+        '<b>"促使学生联想到"</b>平抛运动的方法，也就是要由<b>学生自己说出来</b>，教师不直接给。<br>' +
+        '分解方案（教材 P46）：<br>' +
+        '· 沿 v₀ 方向不受力 ⇒ <b>匀速直线运动</b>；<br>' +
+        '· 垂直于板面方向受恒力 ⇒ <b>初速度为零的匀加速直线运动</b>。<br>' +
+        '灰色投影线就是"等时间间隔"的记号：水平等距说明匀速，竖直 1:3:5:7 说明匀加速。',
+      formula: '沿 v₀：x = v₀t（匀速）　｜　垂直：y = ½at²，a = qU/(md)',
+      init: function (st) { st.U = 200; st.d = 0.02; st.l = 0.06; st.v0 = 3.0e7; st.particle = 'e'; }
+    }),
+    mk(A3, '定量：y 与 tanθ 怎么算', {
+      scene: 'deflect', allow: { U: true, d: true, l: true, v0: true }, show: { bottom: true },
+      hint: '四个量都能拖：<b>偏转电压 U、板距 d、板长 l、入射速度 v₀</b> —— 看 y 与 tanθ 怎么跟着变。',
+      note: '教材 P46 例题2 的三步推导（三把钥匙）：<br>' +
+        '① a = F/m = eE/m = <b>eU/(md)</b>　② t = <b>l/v₀</b>（沿板面方向不受力）　③ y = ½at²<br>' +
+        '合并得到 <b>y = eUl²/(2mdv₀²)</b>；垂直分速度 v⊥ = at = eUl/(mdv₀)，' +
+        '于是 <b>tanθ = v⊥/v₀ = eUl/(mdv₀²)</b>。<br>' +
+        '口径提醒（教材与教参统一）：把电子电荷量按 e 的正值代入，<b>不要写成负值再讨论方向</b> —— ' +
+        '方向问题由受力图示判断。',
+      formula: 'a = qU/(md)　t = l/v₀　y = ½at² = qUl²/(2mdv₀²)　tanθ = qUl/(mdv₀²)',
+      init: function (st) { st.U = 200; st.d = 0.02; st.l = 0.06; st.v0 = 3.0e7; st.particle = 'e'; }
+    }),
+    mk(A3, '偏转角 θ：速度方向偏了多少', {
+      scene: 'deflect', allow: { U: true, v0: true }, show: { angle: true, bottom: true },
+      hint: '拖<b>偏转电压 U</b> 或 <b>v₀</b>：v⊥ 变长，θ 跟着变大，合速度 v 也变大。',
+      note: '教材 P47 原句：<b>"由于电子在平行于板面的方向不受力，它离开电场时，这个方向的分速度仍是 v₀。"</b><br>' +
+        '所以末速度由两个分速度合成：v = √(v₀² + v⊥²)，方向由 tanθ = v⊥/v₀ 决定。<br>' +
+        '官方补充五问（教参 P58）的第③④⑤问就是从这里引到能量视角：' +
+        '"用动能定理求末速度时，怎样求静电力做的功？""比较两种方法的不同点。""谈谈能量的转化情况。"',
+      formula: 'v⊥ = at = qUl/(mdv₀)　θ 由 tanθ = v⊥/v₀ 决定　v = √(v₀² + v⊥²)',
+      init: function (st) { st.U = 200; st.d = 0.02; st.l = 0.06; st.v0 = 3.0e7; }
+    }),
+    mk(A3, '类比：平抛 ↔ 电偏转，程序相同、差异必须点破', {
+      scene: 'analogy', allow: {}, show: {},
+      hint: '这一屏不用拖：两块并排看 —— 分程序一模一样，差异要在嘴上当场说清。',
+      note: '教材 P46 原句：<b>"对这种带电粒子运动的分析思路，跟分析平抛运动是一样的，' +
+        '不同的仅仅是平抛运动物体所受的是重力，而上述带电粒子所受的是静电力。"</b><br>' +
+        '教材这句"不同的仅仅是"是<b>轻描淡写</b>，官方答案却显示偏转量里带着 q、m。把它补成可检查的四条：<br>' +
+        '① 受力来源：mg（恒力）↔ qE = qU/d（恒力）—— <b>程序相同</b>；<br>' +
+        '② 加速度：g 对一切物体相同 ↔ a = qU/(md) <b>与 q、m 都有关</b> —— <b>不同</b>；<br>' +
+        '③ 分解方式：水平匀速＋竖直自由落体 ↔ 沿 v₀ 匀速＋垂直方向初速为零的匀加速 —— 相同；<br>' +
+        '④ 轨迹朝向：平抛总是向下 ↔ 电偏转随<b>电压极性与电荷正负</b>改变 —— <b>不同</b>。',
+      formula: '程序相同 · 对象不同 · 结论自挣 —— 类比能用，差异必须当场点破'
+    }),
+    mk(A3, '例题2：把数代进去', {
+      scene: 'deflect', allow: { U: true, v0: true }, show: { bottom: true },
+      hint: '把 <b>U 拖回 200 V</b>、<b>v₀ 拖回 3.0×10⁷ m/s</b>：教材的两个答案 y = 0.35 cm、θ = 6.7° 就出来了。',
+      note: '教材 P46–P47 例题2 的已知：两相同极板 A 与 B 的<b>长度 l = 6.0 cm</b>、<b>相距 d = 2 cm</b>、' +
+        '<b>电压 U = 200 V</b>；一个电子沿平行于板面的方向射入，<b>v₀ = 3.0×10⁷ m/s</b>。<br>' +
+        '教材答案：<b>y = 0.35 cm、θ = 6.7°</b>。<br>' +
+        '注意 y = 0.35 cm 远小于 d/2 = 1 cm —— 电子没有打到极板上，' +
+        '所以"两板间是匀强电场"这个假设在整个飞行过程中才站得住。',
+      formula: 'y = eUl²/(2mdv₀²) = 0.35 cm　｜　θ = 6.7°',
+      init: function (st) { st.U = 200; st.d = 0.02; st.l = 0.06; st.v0 = 3.0e7; }
+    }),
+    mk(A3, '偏转只由装置决定：混合物不会分成三股', {
+      scene: 'deflect', allow: { U0: true }, show: { compare: true, bottom: true },
+      hint: '拖<b>电子枪加速电压 U₀</b>：三种粒子的 v₀ 差得很远，可轨迹始终重合在一起。',
+      note: '教材 P49 练习第 4 题（实质是证明题）：<b>"让一价氢离子、一价氦离子和二价氦离子的混合物' +
+        '由静止开始经过同一加速电场加速，然后在同一偏转电场里偏转，它们是否会分离为三股粒子束？"</b><br>' +
+        '代换只有一步：把 ½mv₀² = qU₀ 代入，得<br>' +
+        '· tanθ = qUl/(mdv₀²) = <b>Ul/(2U₀d)</b>　· y = qUl²/(2mdv₀²) = <b>Ul²/(4U₀d)</b><br>' +
+        '两式<b>只含装置量</b>（U、U₀、l、d），与粒子的 q、m 无关 ⇒ <b>不分离</b>。<br>' +
+        '反过来看练习第 3 题：若<b>初速度相同</b>（而不是同加速场），tanθ 之比 = m_H/m_e；' +
+        '若<b>初动能相同</b>，之比 = 1 —— 差别就在"v₀ 是怎么来的"。',
+      formula: 'y = Ul²/(4U₀d)　tanθ = Ul/(2U₀d)　——　只含装置量，与 q、m 无关',
+      init: function (st) { st.U = 200; st.d = 0.02; st.l = 0.06; st.U0 = 1000; st.particle = 'e'; }
+    }),
+    mk(A3, '临界：电子会不会打在极板上？', {
+      scene: 'deflect', allow: { U: true, v0: true }, show: { limit: true, bottom: true },
+      hint: '把<b>偏转电压 U 往上拖</b>（或把 <b>v₀ 往下拖</b>）：越过临界值以后，电子就打在上极板上了。',
+      note: '判据就一句：<b>y ≤ d/2 才打得出去</b>。<br>' +
+        '把 y = d/2 代回 y = qUl²/(2mdv₀²)，得到两个等价的临界条件：<br>' +
+        '· 入射速度下限：<b>v₀ ≥ (l/d)·√(qU/m)</b>；<br>' +
+        '· 偏转电压上限：<b>U ≤ md²v₀²/(ql²)</b>。<br>' +
+        '例题2 的装置：v₀ 至少要 1.78×10⁷ m/s，U 最多只能加到 569 V。<br>' +
+        '"利用电场来控制带电粒子的运动"这句话的技术含义就在这里 —— 想让电子打哪儿，就得同时管住电压和速度。',
+      formula: 'y ≤ d/2 ⇔ v₀ ≥ (l/d)·√(qU/m) ⇔ U ≤ md²v₀²/(ql²)',
+      init: function (st) { st.U = 260; st.d = 0.02; st.l = 0.06; st.v0 = 3.0e7; }
+    }),
+    mk(A3, '能量通道：末速度用全过程动能定理算', {
+      scene: 'deflect', allow: { U: true }, show: { energy: true, bottom: true },
+      hint: '拖<b>偏转电压 U</b>：动能增量 qE·y 一直很小，可它正是末速度变大的全部来源。',
+      note: '官方补充五问第③问（教参 P58）：<b>"用动能定理求电子射出电场时的速度大小时，怎样求静电力做的功？"</b><br>' +
+        '答：静电力是恒力，位移在电场方向的投影就是 y，所以 <b>W = qE·y</b>；全过程动能定理给出 ' +
+        '<b>qE·y = ½mv² − ½mv₀²</b>，与分速度合成完全一致。<br>' +
+        '<b>口径 C2（必须显性警示）</b>：动能定理<b>只对全过程写</b>，' +
+        '不要分别写到两个分方向上 —— 分方向的"动能"不是独立的能量项，这是常见易错点。',
+      formula: 'W = qE·y = q(U/d)y　⇒　½mv² − ½mv₀² = qEy　（只对全过程写）',
+      init: function (st) { st.U = 200; st.d = 0.02; st.l = 0.06; st.v0 = 3.0e7; }
+    }),
+
+    /* ================= 第四幕 · 示波管（环节④ ★难点三） ================= */
+    mk(A4, '示波管里有什么？', {
+      scene: 'tube', allow: {}, show: {},
+      hint: '这一屏不用拖：先认三部分 —— 电子枪、偏转电极、荧光屏（管内抽成真空）。',
+      note: '教材 P47 原句：<b>"它由电子枪、偏转电极和荧光屏组成，管内抽成真空。"</b><br>' +
+        '接上前面两个例题（教参 P58 原句）：<b>"电子在加速电场作用下被加速的过程就是例题1讨论的情景。' +
+        '电子经过偏转电场的过程就是例题2讨论的情景，只是这里有两组偏转电极。"</b><br>' +
+        '<b>红线</b>：官方明示示波管的原理为<b>拓展学习内容</b>（教参 P57），本课<b>只讲原理、不讲电路</b> —— ' +
+        '不展开扫描电路、不引入时间常数。',
+      formula: '示波管 ＝ 电子枪 ＋ 偏转电极（XX′、YY′两组）＋ 荧光屏',
+      init: function (st) { st.tubeMode = 'flat'; st.UX = 0; st.UY = 0; }
+    }),
+    mk(A4, '谁管上下、谁管左右？', {
+      scene: 'tube', allow: { tubeMode: true, UY: true, UX: true, t: true }, show: {},
+      hint: '切<b>「Y 加不变电压」／「X 加不变电压」</b>，再拖<b>电压大小（正负都能拖）</b>：YY′ 管上下、XX′ 管左右。',
+      note: '教参 P59 官方四问的第①问：<b>"如果在电极 X、X′ 之间不加电压，但在 Y、Y′ 之间加不变的电压，' +
+        '使 Y 的电势比 Y′ 高……电子将打在荧光屏的什么位置？"</b>（反过来呢？换成 X 正 X′ 负呢？）<br>' +
+        '<b>本课最容易被搞反的一处</b>，教师要在图上明确指认一次：<b>XX′ 管水平（左右）移动、YY′ 管竖直（上下）移动。</b><br>' +
+        '学生最容易错的两处：① 把"Y 电压"当成"水平位移" —— 用"YY′ 是竖着的一组电极、它推电子上下走"这句话固定下来；' +
+        '② 认为"扫描电压也在屏幕上留下一条竖线"。',
+      formula: 'YY′（竖着的一组电极）⇒ 亮斑上下　｜　XX′（横着的一组电极）⇒ 亮斑左右',
+      init: function (st) { st.tubeMode = 'pointY'; st.UY = 60; st.UX = 0; st.t = 1; }
+    }),
+    mk(A4, 'Y 加变化电压：屏幕上是一条竖线', {
+      scene: 'tube', allow: { UY: true, t: true }, show: {},
+      hint: '拖<b>Y 电压幅度</b>、拖<b>时刻 t</b>：亮斑上下跑，余晖连成一条竖直亮线。',
+      note: '教参 P59 官方四问第②问：<b>"如果在电极 X、X′ 之间不加电压，而在电极 Y、Y′ 之间所加的电压' +
+        '按图10-11甲所示的规律随时间变化，在荧光屏上会看到什么图形？"</b><br>' +
+        '答案是<b>一条竖直亮线</b>（不是"一个上下跳的点"）—— 因为它跑得太快，眼睛看到的是余晖连成的整条线。<br>' +
+        '为什么可以认为"每一瞬间电压不变"？官方理由：<b>电子速度很大，穿越偏转电场的很短时间内膜电压恒定不变</b>（教参 P59）。<br>' +
+        '方法指令（官方原话的通俗版）：讨论电压变化引起电子位置变化时，<b>先描特殊点、后连线</b>。',
+      formula: 'y ∝ U　⇒　U 在变，亮斑的 y 就在按同样的规律变',
+      init: function (st) { st.tubeMode = 'yline'; st.UY = 100; st.UX = 0; st.t = 0.5; }
+    }),
+    mk(A4, 'X 加扫描电压：稳定的波形出现了', {
+      scene: 'tube', allow: { UX: true, t: true }, show: {},
+      hint: '拖<b>X 扫描电压幅度</b>、拖<b>时刻 t</b>：亮斑一边上下、一边被"摊开"，屏上出现稳定的正弦波形。',
+      note: '教参 P59 官方四问第④问：<b>"如果 Y、Y′ 之间的电压仍然如图10-11甲所示，' +
+        '而在电极 X、X′ 之间所加的电压按图10-11乙所示的规律变化，在荧光屏上会看到什么图形？"</b><br>' +
+        '教材 P47 的落点句：<b>"如果信号电压是周期性的，并且扫描电压与信号电压的周期相同，' +
+        '那么，就可以在荧光屏上得到待测信号在一个周期内随时间变化的稳定图像了。"</b><br>' +
+        '学生最容易错的一处：认为"扫描电压也在屏幕上留下一条竖线" —— ' +
+        '用"<b>扫描电压太快，眼睛只看到它把图形"摊开"</b>"来解释。',
+      formula: 'X 加锯齿波（扫描电压）＋ Y 加信号电压　⇒　Y–X 图像 = 信号的波形',
+      init: function (st) { st.tubeMode = 'scan'; st.UY = 100; st.UX = 160; st.t = 0.62; }
+    }),
+    mk(A4, 'y ∝ U：电压的变化被标定成位移', {
+      scene: 'tube', allow: { UY: true }, show: {},
+      hint: '在「Y 加变化电压」模式下拖<b>Y 电压幅度</b>：亮线的长度严格正比于电压幅度。',
+      note: '教参 P59 原句：<b>"例题2中求得的垂直板面的侧向位移 y 的表达式说明，y 与偏转电压 U 成正比。"</b><br>' +
+        '把这句话接到示波器上就是全部原理：<b>电压的变化（信号）被亮斑的位移（看得见的图像）线性标定出来。</b><br>' +
+        '整条因果链：<br>' +
+        '电子枪加速（例题1）→ 两组偏转电极按电压把电子推偏（例题2）→ 屏上亮斑位移 ∝ 电压 → 扫描电压把时间"摊开" → 稳定波形。',
+      formula: 'y = Ul²/(4U₀d) ∝ U　⇒　亮斑位移是电压的"线性刻度尺"',
+      init: function (st) { st.tubeMode = 'yline'; st.UY = 60; st.UX = 0; st.t = 0.5; }
+    }),
+
+    /* ================= 第五幕 · 模型边界与应用（环节⑤⑥） ================= */
+    mk(A5, '"看作匀强电场"这句话省略了什么？', {
+      scene: 'edge', allow: { d: true }, show: {},
+      hint: '拖<b>板距 d</b>：边缘效应的影响范围约为几倍 d —— 板距越大，被忽略的部分占的比例越大。',
+      note: '教材 P46 例题2 里那句限定：<b>"把两板间的电场看作匀强电场"</b>。<br>' +
+        '课堂追问："这句话省略了什么？"（预期：极板边缘的场、极板外侧的场、<b>边缘效应</b>）。<br>' +
+        '环节⑤的悖论（素材来自外01，只做<b>定性讨论</b>，不算功率）：电子射入偏转电场会在极板上引起静电感应，' +
+        '感应电荷量随电子与极板的距离变化，极板与外电路之间出现感应电流；' +
+        '按"电源输出功率"算一遍、按"动能定理"算一遍，两种算法结果不一致，出现"能量不守恒"的似是而非的结论 —— ' +
+        '问题出在<b>忽略边缘效应</b>这个近似上，系统总能量依然守恒。<br>' +
+        '<b>收官只有一句方法论</b>：当计算违反能量守恒时，<b>先怀疑模型，而不是先怀疑能量守恒</b>。',
+      formula: '模型条件：把两板间的电场看作匀强电场（忽略了边缘效应）',
+      init: function (st) { st.d = 0.02; }
+    }),
+    mk(A5, '质子疗法：加速电场的场强要多大？', {
+      scene: 'apps', allow: { len: true, v: true }, show: {},
+      hint: '拖<b>加速长度 l</b>、<b>末速度 v</b>：由动能定理 Eql = ½mv² 反解出场强 E。',
+      note: '教材 P49 练习第 6 题：<b>"若质子的加速长度为 4.0 m，要使质子由静止被加速到 1.0×10⁷ m/s，' +
+        '加速匀强电场的电场强度应是多少？"</b>　官方答案 <b>1.30×10⁵ N/C</b>。<br>' +
+        '解法的选择本身就是本节的判据：只涉及位移和速率 ⇒ <b>用动能定理</b>，一行出结果。<br>' +
+        '科学漫步的落点句（教材 P48）：使用直线加速器<b>"不需要放射源，不开机时完全没有射线，更加安全，也便于管理"</b>；' +
+        '范德格拉夫静电加速器的原理链（教参 P59原句）：<b>"利用尖端放电的原理起电，产生高电压，再用高电压对带电粒子加速。"</b>',
+      formula: 'Eql = ½mv²　⇒　E = mv²/(2ql) = 1.30×10⁵ N/C',
+      init: function (st) { st.len = 4.0; st.v = 1.0e7; }
+    }),
+
+    /* ================= 第六幕 · 收束（环节⑦） ================= */
+    mk(A6, '判断链：四种情境各填一遍', {
+      scene: 'chain', allow: {}, show: {},
+      hint: '这一屏不用拖：把四格表逐行念一遍 —— 这就是本节真正要带走的东西。',
+      note: '官方红线（教参 P57 原句）：<b>"教学中应着重让学生掌握分析此类问题的思路，而不是死记硬背公式。"</b><br>' +
+        '开课时留下的"判断链"四格表在这里补满：情境 → 受什么力 → 什么运动 → 选哪条思路（＋适用条件）。<br>' +
+        '配套的三条结论：<br>' +
+        '· 一条判据：重力通常可忽略（微观粒子）；<br>' +
+        '· 一条结论：y = Ul²/(4U₀d)、tanθ = Ul/(2U₀d) —— 偏转只由装置决定，与 q、m 无关；<br>' +
+        '· 一条方法论：算不通时先怀疑模型（边缘效应），不怀疑能量守恒。',
+      formula: '情境 → 受什么力 → 什么运动 → 选哪条思路（＋适用条件）'
+    }),
+    mk(A6, '三句话带走', {
+      scene: 'conclusion', allow: {}, show: {},
+      lines: [
+        { t: '10.5　带电粒子在电场中的运动', c: '#888888', size: 15 },
+        { t: '① 加速：两条通道一个结论 —— qU = ½mv²（非匀强电场只能走这条）', c: '#FFFFFF', size: 19 },
+        { t: '② 偏转：拆成两段 —— 沿 v₀ 匀速 ＋ 垂直匀加速；y = Ul²/(4U₀d)、tanθ = Ul/(2U₀d)', c: '#FFFFFF', size: 19 },
+        { t: '③ 示波管：y ∝ U —— 把电压的变化线性标定成亮斑的位移', c: '#FFFF00', size: 20 },
+        { t: '算不通时，先怀疑模型，而不是先怀疑能量守恒', c: '#888888', size: 14 }
+      ],
+      hint: '这一屏不用拖：把三句话念一遍，再回到第 3 步看那两条通道。',
+      note: '两个睡前自查：① "非匀强电场里还能用 qU = ½mv² 吗？为什么？"（能；静电力做功只看首末位置，' +
+        '与路径和场是否均匀都无关）；② "示波管里 YY′ 和 XX′ 各管哪个方向？"（YY′ 管上下、XX′ 管左右）。',
+      formula: '加速看能量，偏转看分解，示波管看正比。'
+    })
+  ];
+
+  /* ---------- 应用一个步骤（纯函数式重建） ---------- */
+  function apply(st, i) {
+    i = clamp(i, 0, STEPS.length - 1);
+    var fresh = baseState(), k;
+    for (k in fresh) { st[k] = fresh[k]; }
+    var def = STEPS[i];
+    st.step = i;
+    st.act = def.act; st.title = def.title; st.hint = def.hint || '';
+    st.note = def.note || ''; st.formula = def.formula || '';
+    st.scene = def.scene || 'intro';
+    st.lines = def.lines || [];
+    st.allow = {};
+    for (k in (def.allow || {})) { st.allow[k] = true; }
+    if (def.init) { def.init(st); }
+    for (k in (def.show || {})) { st.show[k] = def.show[k]; }
+    /* 归一化，防止越界 */
+    st.t = clamp(st.t, 0, 1);
+    st.U = clamp(st.U, 0, 600);
+    st.U0 = clamp(st.U0, 200, 3000);
+    st.d = clamp(st.d, 0.005, 0.06);
+    st.l = clamp(st.l, 0.02, 0.12);
+    st.v0 = clamp(st.v0, 5.0e6, 6.0e7);
+    st.n = clamp(Math.round(st.n), 1, 8);
+    st.u = clamp(st.u, 100, 2000);
+    st.T = clamp(st.T, 1e-8, 1e-6);
+    st.UX = clamp(st.UX, -200, 200);
+    st.UY = clamp(st.UY, -120, 120);
+    st.len = clamp(st.len, 0.5, 8);
+    st.v = clamp(st.v, 2.0e6, 3.0e7);
+    return st;
+  }
+
+  global.VizSteps = {
+    STEPS: STEPS, apply: apply, baseState: baseState
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* =====================================================================
+   viz_ce_app.js —— 交互层：翻页 / 拖动 / 滑块 / 读数 / 自检接口
+   翻页用 VizSteps.apply() 纯重建，所以"上一步"永远精确复原。
+   ===================================================================== */
+(function () {
+  'use strict';
+  var P = window.VizPhys, R = window.VizRender, St = window.VizSteps;
+
+  var cv = document.getElementById('cv');
+  var st = St.baseState();
+  var S = null;          // 上一帧的场景几何（命中测试用）
+  var drag = null;
+
+  function $(id) { return document.getElementById(id); }
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+  function show(el, on) { if (el) { el.classList[on ? 'remove' : 'add']('hidden'); } }
+
+  /* ================= 渲染 ================= */
+  function draw() {
+    S = R.render(cv, st).S;
+    updatePanel();
+    updateControls();
+    updateCursor();
+    markToc();
+  }
+  function updateCursor() {
+    var h = S && S.hit;
+    var can = !!(h && (h.deflect || (h.screen && st.tubeMode !== 'flat')));
+    cv.className = drag ? 'grabbing' : (can ? 'grab' : '');
+  }
+
+  /* ================= 读数面板 ================= */
+  function updatePanel() {
+    var sc = st.scene;
+    show($('gAccel'), sc === 'accel');
+    show($('gCyl'), sc === 'cyl');
+    show($('gNonuni'), sc === 'nonuni');
+    show($('gDeflect'), sc === 'deflect');
+    show($('gTube'), sc === 'tube');
+    show($('gEdge'), sc === 'edge');
+    show($('gApps'), sc === 'apps');
+    show($('gNone'), sc === 'intro' || sc === 'analogy' || sc === 'chain' || sc === 'conclusion');
+
+    var PK = P.PART[st.particle] || P.PART.e;
+
+    if (sc === 'accel') {
+      var E = P.fieldE(st.U, st.d);
+      var Fq = PK.q * E, Fg = PK.m * P.G0;
+      var ratio = P.gravityRatio(st.particle, E);
+      var vd = P.gravityVerdict(st.particle, E);
+      $('rdPart').textContent = PK.name;
+      $('rdPart').className = PK.neg ? 'neg' : 'pos';
+      $('rdAU').textContent = R.ufmt(st.U);
+      $('rdAD').textContent = R.lfmt(st.d);
+      $('rdAE').textContent = R.efmt(E);
+      $('rdAa').textContent = R.sci(P.accelA(st.U, st.d, PK.q, PK.m), 2) + ' m/s²';
+      $('rdAv').textContent = R.vfmt(P.accelVEnergy(st.U, PK.q, PK.m));
+      $('rdAFq').textContent = R.sci(Fq, 2) + ' N';
+      $('rdAFg').textContent = R.sci(Fg, 2) + ' N';
+      $('rdARatio').textContent = R.sci(ratio, 2);
+      $('rdAVerdict').textContent = vd === 'ignore' ? '重力可忽略' : (vd === 'gravity' ? '重力是主角' : '必须比较');
+      $('rdAVerdict').className = vd === 'ignore' ? 'yellow' : 'green';
+    } else if (sc === 'cyl') {
+      var n = Math.round(st.n), u = st.u, T = st.T;
+      var vn = P.cylV(n, u, PK.q, PK.m), ln = P.cylLen(n, T, u, PK.q, PK.m);
+      var l1 = P.cylLen(1, T, u, PK.q, PK.m);
+      $('rdCn').textContent = n + ' 个';
+      $('rdCu').textContent = R.ufmt(u);
+      $('rdCT').textContent = R.sci(T, 1) + ' s';
+      $('rdCcur').textContent = '第 ' + clamp(Math.ceil(st.t * n), 1, n) + ' 个';
+      $('rdCv').textContent = R.vfmt(vn);
+      $('rdCl').textContent = R.lfmt(ln);
+      $('rdCr').textContent = (ln / l1).toFixed(4) + '（√n = ' + Math.sqrt(n).toFixed(4) + '）';
+      $('rdCt').textContent = R.sci(ln / vn, 2) + ' s　(T/2 = ' + R.sci(T / 2, 2) + ' s)';
+    } else if (sc === 'nonuni') {
+      var Q = P.NU_Q, q = -P.E_CHG, m = P.M_E, r0 = P.NU_R0, r1 = P.NU_R1;
+      var rNow = r0 + (r1 - r0) * clamp(st.t, 0, 1);
+      var np = P.nonUniPath(Q, q, m, r0, r1, 3000);
+      $('rdNr').textContent = R.num(rNow * 100, 2) + ' cm';
+      $('rdNE').textContent = R.efmt(P.K_E * Q / (rNow * rNow));
+      $('rdNE2').textContent = R.sci((P.K_E * Q / (rNow * rNow)) / (P.K_E * Q / (r0 * r0)), 2);
+      $('rdNv').textContent = R.vfmt(P.nonUniV(Q, q, m, r0, rNow));
+      $('rdNv1').textContent = R.vfmt(np.vEnd);
+      $('rdNv2').textContent = R.vfmt(np.vEnergy);
+      $('rdNd').textContent = (np.relErr * 100).toExponential(2) + ' %';
+      $('rdNd').className = 'yellow';
+    } else if (sc === 'deflect') {
+      var a = P.deflA(st.U, st.d, PK.q, PK.m);
+      var t = P.deflT(st.l, st.v0);
+      var y = P.deflY(st.U, st.d, st.l, st.v0, PK.q, PK.m);
+      var tan = P.deflTan(st.U, st.d, st.l, st.v0, PK.q, PK.m);
+      var vEnd = P.deflV(st.U, st.d, st.l, st.v0, PK.q, PK.m);
+      $('rdDU').textContent = R.ufmt(st.U);
+      $('rdDLD').textContent = R.lfmt(st.l) + ' / ' + R.lfmt(st.d);
+      $('rdDv0').textContent = R.vfmt(st.v0);
+      $('rdDa').textContent = R.sci(a, 2) + ' m/s²';
+      $('rdDt').textContent = R.sci(t, 2) + ' s';
+      $('rdDy').textContent = R.lfmt(y);
+      $('rdDtan').textContent = tan.toFixed(4);
+      $('rdDth').textContent = R.num(Math.atan(tan) * 180 / Math.PI, 2) + '°';
+      $('rdDv').textContent = R.vfmt(vEnd);
+      $('rdDdEk').textContent = R.kefmt(P.deflWork(st.U, st.d, y, PK.q));
+      $('rdDhit').textContent = y > st.d / 2 ? '是（y > d/2）' : '否（y < d/2）';
+      $('rdDhit').className = y > st.d / 2 ? 'pos' : 'green';
+      $('rdDU0').textContent = R.ufmt(st.U0);
+    } else if (sc === 'tube') {
+      var names = { flat: '都不加电压', pointY: 'Y 加不变电压', pointX: 'X 加不变电压', yline: 'Y 加变化电压', xshift: 'Y 变＋X 不变', scan: 'X 加扫描电压' };
+      var sig = R.tubeSignal(st, clamp(st.t, 0, 1));
+      $('rdTm').textContent = names[st.tubeMode] || '—';
+      $('rdTUY').textContent = R.ufmt(sig.UY);
+      $('rdTUX').textContent = R.ufmt(sig.UX);
+      $('rdTY').textContent = R.lfmt(P.tubeY(sig.UY, P.TB_U0, P.TB_L, P.TB_D, P.TB_LSCREEN));
+      $('rdTX').textContent = R.lfmt(P.tubeY(sig.UX, P.TB_U0, P.TB_L, P.TB_D, P.TB_LSCREEN));
+      $('rdTt').textContent = (st.t * 100).toFixed(0) + '% 个周期';
+    } else if (sc === 'edge') {
+      $('rdEd').textContent = R.lfmt(st.d);
+      $('rdEe').textContent = '≈ 3 倍 d（两侧共 6d）';
+      $('rdEr').textContent = '6d / l = ' + (6 * st.d / 0.06).toFixed(2) +
+        (6 * st.d / 0.06 >= 1 ? '（已超过板长）' : '');
+    } else if (sc === 'apps') {
+      var m2 = P.M_P, q2 = P.E_CHG;
+      var E2 = P.beamE(st.v, q2, m2, st.len);
+      $('rdAl').textContent = R.num(st.len, 1) + ' m';
+      $('rdAv2').textContent = R.vfmt(st.v);
+      $('rdAek').textContent = R.kefmt(P.beamKE(st.v, m2)) + '（' + R.evfmt(P.beamKE(st.v, m2)) + '）';
+      $('rdAE2').textContent = R.efmt(E2);
+      $('rdAU2').textContent = R.ufmt(E2 * st.len);
+    } else {
+      $('rdNone').textContent = sc === 'intro' ? '这一屏不用拖'
+        : sc === 'analogy' ? '这一屏不用拖' : '这一屏不用拖';
+    }
+    $('rdFormula').innerHTML = st.formula || '—';
+    $('rdNote').innerHTML = st.note || '—';
+  }
+
+  /* ================= 控件状态 ================= */
+  function updateControls() {
+    var a = st.allow;
+    show($('wrapU'), !!a.U);
+    show($('wrapD'), !!a.d);
+    show($('wrapL'), !!a.l);
+    show($('wrapV0'), !!a.v0);
+    show($('wrapU0'), !!a.U0);
+    show($('wrapT'), !!a.t);
+    show($('wrapN'), !!a.n);
+    show($('wrapUc'), !!a.u);
+    show($('wrapUX'), !!a.UX);
+    show($('wrapUY'), !!a.UY);
+    show($('wrapLen'), !!a.len);
+    show($('wrapV'), !!a.v);
+    show($('wrapParticle'), !!a.particle);
+    show($('wrapJudge'), !!a.judge);
+    show($('wrapTubeMode'), !!a.tubeMode);
+
+    $('stepTitle').textContent = st.title;
+    $('actTag').textContent = st.act;
+    $('stepSn').textContent = (st.step + 1) + ' / ' + St.STEPS.length;
+    $('hint').innerHTML = st.hint || '';
+    $('prog').firstElementChild.style.width = ((st.step + 1) / St.STEPS.length * 100) + '%';
+
+    /* 电压滑块的名字随场景变 */
+    $('lbUname').textContent = st.scene === 'accel' ? '两板电压 U' : '偏转电压 U';
+    /* 进度滑块的名字随场景变 */
+    $('lbTname').textContent = st.scene === 'tube' ? '时刻 t（一个周期内）'
+      : st.scene === 'cyl' ? '电子位置' : '粒子位置';
+    $('lbT').textContent = st.scene === 'tube' ? Math.round(st.t * 100) + '%' : Math.round(st.t * 100) + '%';
+
+    $('rgU').value = Math.round(st.U); $('lbU').textContent = R.ufmt(st.U);
+    $('rgD').value = Math.round(st.d * 1000); $('lbD').textContent = R.lfmt(st.d);
+    $('rgL').value = Math.round(st.l * 1000); $('lbL').textContent = R.lfmt(st.l);
+    $('rgV0').value = Math.round(st.v0 / 1e6); $('lbV0').textContent = R.vfmt(st.v0);
+    $('rgU0').value = Math.round(st.U0); $('lbU0').textContent = R.ufmt(st.U0);
+    $('rgT').value = Math.round(st.t * 1000);
+    $('rgN').value = Math.round(st.n); $('lbN').textContent = Math.round(st.n) + ' 个';
+    $('rgUc').value = Math.round(st.u); $('lbUc').textContent = R.ufmt(st.u);
+    $('rgUX').value = Math.round(st.UX); $('lbUX').textContent = R.ufmt(st.UX);
+    $('rgUY').value = Math.round(st.UY); $('lbUY').textContent = R.ufmt(st.UY);
+    $('rgLen').value = Math.round(st.len * 10); $('lbLen').textContent = R.num(st.len, 1) + ' m';
+    $('rgV').value = st.v / 1e6; $('lbV').textContent = R.vfmt(st.v);
+
+    var i, list;
+    list = document.querySelectorAll('#wrapParticle button');
+    for (i = 0; i < list.length; i++) {
+      list[i].className = (list[i].getAttribute('data-p') === st.particle) ? 'on' : '';
+    }
+    list = document.querySelectorAll('#wrapJudge button');
+    for (i = 0; i < list.length; i++) {
+      list[i].className = (list[i].getAttribute('data-judge') === st.judge) ? 'on' : '';
+    }
+    list = document.querySelectorAll('#wrapTubeMode button');
+    for (i = 0; i < list.length; i++) {
+      list[i].className = (list[i].getAttribute('data-tm') === st.tubeMode) ? 'on' : '';
+    }
+  }
+
+  /* ================= 翻页 ================= */
+  function go(i) {
+    St.apply(st, i);
+    draw();
+    if (window.requestAnimationFrame) { window.requestAnimationFrame(draw); }
+  }
+  function next() { go(st.step + 1); }
+  function prev() { go(st.step - 1); }
+  function resetStep() { go(st.step); }
+
+  $('btnNext').addEventListener('click', next);
+  $('btnPrev').addEventListener('click', prev);
+  $('btnReset').addEventListener('click', resetStep);
+  $('prog').addEventListener('click', function (ev) {
+    var r = this.getBoundingClientRect();
+    var f = clamp((ev.clientX - r.left) / r.width, 0, 0.999);
+    go(Math.floor(f * St.STEPS.length));
+  });
+  (function ticks() {
+    var bar = $('prog');
+    for (var i = 1; i < St.STEPS.length; i++) {
+      var u = document.createElement('u');
+      u.style.left = (i / St.STEPS.length * 100) + '%';
+      bar.appendChild(u);
+    }
+  })();
+
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key === 'ArrowRight' || ev.key === 'PageDown' || ev.key === ' ') { next(); ev.preventDefault(); }
+    else if (ev.key === 'ArrowLeft' || ev.key === 'PageUp') { prev(); ev.preventDefault(); }
+    else if (ev.key === 'Home') { go(0); ev.preventDefault(); }
+  });
+
+  /* ================= 滑块 ================= */
+  $('rgU').addEventListener('input', function () { st.U = parseFloat(this.value); draw(); });
+  $('rgD').addEventListener('input', function () { st.d = parseFloat(this.value) / 1000; draw(); });
+  $('rgL').addEventListener('input', function () { st.l = parseFloat(this.value) / 1000; draw(); });
+  $('rgV0').addEventListener('input', function () { st.v0 = parseFloat(this.value) * 1e6; draw(); });
+  $('rgU0').addEventListener('input', function () { st.U0 = parseFloat(this.value); draw(); });
+  $('rgT').addEventListener('input', function () { st.t = parseFloat(this.value) / 1000; draw(); });
+  $('rgN').addEventListener('input', function () { st.n = parseInt(this.value, 10); draw(); });
+  $('rgUc').addEventListener('input', function () { st.u = parseFloat(this.value); draw(); });
+  $('rgUX').addEventListener('input', function () { st.UX = parseFloat(this.value); draw(); });
+  $('rgUY').addEventListener('input', function () { st.UY = parseFloat(this.value); draw(); });
+  $('rgLen').addEventListener('input', function () { st.len = parseFloat(this.value) / 10; draw(); });
+  $('rgV').addEventListener('input', function () { st.v = parseFloat(this.value) * 1e6; draw(); });
+
+  /* ================= 按钮组 ================= */
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest ? ev.target.closest('button') : null;
+    if (!b) { return; }
+    if (b.hasAttribute('data-p') && st.allow.particle) { st.particle = b.getAttribute('data-p'); draw(); }
+    else if (b.hasAttribute('data-judge') && st.allow.judge) { st.judge = b.getAttribute('data-judge'); draw(); }
+    else if (b.hasAttribute('data-tm') && st.allow.tubeMode) {
+      st.tubeMode = b.getAttribute('data-tm');
+      if (st.tubeMode === 'pointY' && st.UY === 0) { st.UY = 60; }
+      if (st.tubeMode === 'pointX' && st.UX === 0) { st.UX = 120; }
+      if ((st.tubeMode === 'yline' || st.tubeMode === 'scan' || st.tubeMode === 'xshift') && st.UY === 0) { st.UY = 100; }
+      if (st.tubeMode === 'scan' && st.UX === 0) { st.UX = 160; }
+      draw();
+    }
+  });
+
+  /* ================= 画布拖动 =================
+     deflect：把粒子往上/往下拖 = 直接改偏转电压 U（y = U·(d/2)/U_lim）
+     tube   ：把亮斑拖到屏上任意位置 = 直接给出 U_Y / U_X
+     ============================================ */
+  function cpos(ev) {
+    var r = cv.getBoundingClientRect();
+    return { x: ev.clientX - r.left, y: ev.clientY - r.top };
+  }
+  cv.addEventListener('pointerdown', function (ev) {
+    var p = cpos(ev), h = S && S.hit;
+    if (!h) { return; }
+    if (h.deflect && st.allow.U) {
+      drag = { kind: 'deflect' };
+    } else if (h.screen && st.allow.UY) {
+      drag = { kind: 'screen' };
+    } else { return; }
+    cv.setPointerCapture(ev.pointerId);
+    cv.className = 'grabbing';
+    applyDrag(p);
+    ev.preventDefault();
+  });
+  cv.addEventListener('pointermove', function (ev) {
+    if (!drag) { return; }
+    applyDrag(cpos(ev));
+    ev.preventDefault();
+  });
+  function endDrag(ev) {
+    if (!drag) { return; }
+    drag = null;
+    try { cv.releasePointerCapture(ev.pointerId); } catch (e) { }
+    updateCursor();
+  }
+  cv.addEventListener('pointerup', endDrag);
+  cv.addEventListener('pointercancel', endDrag);
+  cv.addEventListener('dblclick', resetStep);
+
+  function applyDrag(p) {
+    var h = S && S.hit;
+    if (!h) { return; }
+    var PK = P.PART[st.particle] || P.PART.e;
+    if (drag.kind === 'deflect' && h.deflect) {
+      var H = h.deflect;
+      var yPix = Math.abs(p.y - H.midY);
+      var yPhys = yPix / H.kY;                       /* 想要的侧移 (m) */
+      var uLim = P.deflULimit(st.d, st.l, st.v0, PK.q, PK.m);
+      var U = yPhys * uLim / (st.d / 2);
+      st.U = clamp(Math.round(U), 0, 600);
+      draw();
+    } else if (drag.kind === 'screen' && h.screen) {
+      var Q = h.screen;
+      var sensY = P.tubeSens(P.TB_U0, P.TB_L, P.TB_D, P.TB_LSCREEN);
+      var Yv = -(p.y - Q.cy) / Q.kSY;
+      st.UY = clamp(Math.round(Yv / sensY / 5) * 5, -120, 120);
+      if (st.allow.UX) {
+        var Xv = (p.x - Q.cx) / Q.kSX;
+        st.UX = clamp(Math.round(Xv / sensY / 5) * 5, -200, 200);
+      }
+      draw();
+    }
+  }
+
+  /* ================= 步骤导航条 ================= */
+  var tocEl = $('toc'), tocLinks = [], tocMarked = -1;
+  (function buildToc() {
+    var curAct = null;
+    for (var i = 0; i < St.STEPS.length; i++) {
+      var def = St.STEPS[i];
+      if (def.act !== curAct) {
+        if (curAct !== null) {
+          var sp = document.createElement('span'); sp.className = 'sep'; tocEl.appendChild(sp);
+        }
+        curAct = def.act;
+        var lab = document.createElement('span');
+        lab.className = 'grouplab';
+        lab.textContent = String(def.act).split('·')[0].trim();
+        lab.title = def.act;
+        tocEl.appendChild(lab);
+      }
+      var a = document.createElement('a');
+      a.title = (i + 1) + '. ' + def.title;
+      a.textContent = String(i + 1);
+      (function (idx, node) { node.addEventListener('click', function () { go(idx); }); })(i, a);
+      tocEl.appendChild(a);
+      tocLinks.push(a);
+    }
+  })();
+  function markToc() {
+    if (!tocLinks.length || tocMarked === st.step) { return; }
+    tocMarked = st.step;
+    for (var i = 0; i < tocLinks.length; i++) {
+      var on = (i === st.step);
+      tocLinks[i].className = on ? 'on' : '';
+      if (on && tocLinks[i].scrollIntoView) { tocLinks[i].scrollIntoView({ block: 'nearest', inline: 'nearest' }); }
+    }
+  }
+
+  /* ================= 自检 / 调试接口 ================= */
+  function hash() {
+    var f = R.fitCanvas(cv);
+    var W = Math.floor(f.W), H = Math.floor(f.H);
+    var d = f.ctx.getImageData(0, 0, W, H).data;
+    var h = 2166136261 >>> 0;
+    for (var i = 0; i < d.length; i += 61) { h ^= d[i]; h = (h * 16777619) >>> 0; }
+    return ('00000000' + h.toString(16)).slice(-8);
+  }
+
+  /**
+   * 本课物理专项验证（页面里跑，报出用例数与最大误差）
+   *   ① 两条通道同一个 v　② 教材例题2（y、θ）　③ 教材练习 1/2/5/6
+   *   ④ 混合物不分离⑤ 出界临界　⑥ 圆筒 l ∝ √n　⑦ 示波管 Y = y + L·tanθ
+   *   ⑧ 能量通道 ≡ 分速度合成　⑨ 重力判据　⑩ 非匀强场两通道一致
+   */
+  function verifyCE() {
+    var worst = 0, cases = 0, bad = [];
+    function chk(a, b, tag, tol) {
+      cases++;
+      var e = Math.abs(a - b);
+      if (e > worst) { worst = e; }
+      var t = (tol === undefined) ? 1e-9 : tol;
+      if (!(e <= t)) { bad.push(tag + ' err=' + e); }
+    }
+    function rel(a, b, tag, tol) {
+      var e = Math.abs(a - b) / Math.max(1e-300, Math.abs(b));
+      if (e > worst) { worst = e; }
+      cases++;
+      if (!(e <= (tol === undefined ? 1e-12 : tol))) { bad.push(tag + ' rel=' + e); }
+    }
+    var i, j, k;
+    var Us = [12.5, 90, 200, 1000, 5000], Ds = [0.005, 0.02, 0.062, 0.2];
+    var PKs = ['e', 'p', 'he1', 'he2', 'oil'];
+    for (i = 0; i < Us.length; i++) {
+      for (j = 0; j < Ds.length; j++) {
+        for (k = 0; k < PKs.length; k++) {
+          var p = P.PART[PKs[k]];
+          rel(P.accelVNewton(Us[i], Ds[j], p.q, p.m), P.accelVEnergy(Us[i], p.q, p.m), '①两条通道同一个 v');
+        }
+      }
+    }
+    rel(P.accelKE(90, 2 * P.E_CHG), 2.88e-17, '③练习1 Ek = qU', 2e-3);
+    rel(P.accelVEnergy(12.5, P.E_CHG, P.M_E), 2.10e6, '③练习2 v = 2.10×10⁶ m/s', 5e-3);
+    rel(P.deflY(200, 0.02, 0.06, 3.0e7, P.E_CHG, P.M_E), 0.35e-2, '②例题2 y = 0.35 cm', 1e-2);
+    rel(Math.atan(P.deflTan(200, 0.02, 0.06, 3.0e7, P.E_CHG, P.M_E)) * 180 / Math.PI, 6.7, '②例题2 θ = 6.7°', 1e-2);
+    var v5 = P.deflV0(1000, P.E_CHG, P.M_E), t5 = 5000 * 0.06 / (2 * 1000);
+    rel(v5 * Math.sqrt(1 + t5 * t5), 1.9e7, '③练习5 v = 1.9×10⁷ m/s', 5e-3);
+    rel(Math.atan(t5) * 180 / Math.PI, 8.53, '③练习5 θ = 8.53°', 1e-3);
+    rel(P.beamE(1.0e7, P.E_CHG, P.M_P, 4.0), 1.30e5, '③练习6 E = 1.30×10⁵ N/C', 1e-2);
+    var U0m = 1000, Um = 200, lm = 0.06, dm = 0.02;
+    var mix = P.mixSame(U0m, Um, lm, dm);
+    for (i = 0; i < P.MIX_KEYS.length; i++) {
+      var mp = P.PART[P.MIX_KEYS[i]];
+      rel(P.deflY(Um, dm, lm, mix.v0[i], mp.q, mp.m), mix.y, '④不分离 y（' + mp.name + '）');
+      rel(P.deflTan(Um, dm, lm, mix.v0[i], mp.q, mp.m), mix.tan, '④不分离 tanθ（' + mp.name + '）');
+    }
+    var vLim = P.deflV0Limit(Um, dm, lm, P.E_CHG, P.M_E);
+    rel(P.deflY(Um, dm, lm, vLim, P.E_CHG, P.M_E), dm / 2, '⑤临界速度处 y = d/2');
+    var uLim = P.deflULimit(dm, lm, 3.0e7, P.E_CHG, P.M_E);
+    rel(P.deflY(uLim, dm, lm, 3.0e7, P.E_CHG, P.M_E), dm / 2, '⑤临界电压处 y = d/2');
+    chk(P.deflHit(200, dm, lm, 3.0e7, P.E_CHG, P.M_E) ? 1 : 0, 0, '⑤例题2 不出界', 0);
+    var T = 1.0e-7;
+    for (i = 1; i <= 8; i++) {
+      rel(P.cylLen(i, T, 500, P.E_CHG, P.M_E) / P.cylLen(1, T, 500, P.E_CHG, P.M_E), Math.sqrt(i), '⑥lₙ ∝ √n');
+    }
+    for (i = 0; i <= 12; i++) {
+      rel(P.tubeY(i * 10, P.TB_U0, P.TB_L, P.TB_D, P.TB_LSCREEN),
+        P.tubeY2(i * 10, P.TB_U0, P.TB_L, P.TB_D, P.TB_LSCREEN), '⑦示波管两种写法');
+    }
+    rel(P.tubeY(60, P.TB_U0, P.TB_L, P.TB_D, P.TB_LSCREEN) / P.tubeY(30, P.TB_U0, P.TB_L, P.TB_D, P.TB_LSCREEN), 2, '⑦Y ∝ U');
+    var y2 = P.deflY(200, 0.02, 0.06, 3.0e7, P.E_CHG, P.M_E);
+    rel(P.deflVenergy(200, 0.02, y2, 3.0e7, P.E_CHG, P.M_E),
+      P.deflV(200, 0.02, 0.06, 3.0e7, P.E_CHG, P.M_E), '⑧能量通道 ≡ 分速度合成');
+    chk(P.gravityVerdict('e', 1e4) === 'ignore' ? 1 : 0, 1, '⑨电子可忽略重力', 0);
+    rel(P.gravityRatio('oil', P.balanceE('oil')), 1, '⑨平衡场强处 qE = mg');
+    var np = P.nonUniPath(P.NU_Q, -P.E_CHG, P.M_E, P.NU_R0, P.NU_R1, 20000);
+    chk(np.relErr < 5e-3 ? 1 : 0, 1, '⑩非匀强场两通道一致（实测 ' + np.relErr.toExponential(1) + '）', 0);
+    return { ok: bad.length === 0, cases: cases, maxErr: worst, failed: bad.slice(0, 4) };
+  }
+
+  window.__viz = {
+    state: st,
+    count: St.STEPS.length,
+    go: go, next: next, prev: prev, reset: resetStep, draw: draw,
+    hash: hash,
+    getS: function () { return S; },
+    render: R, phys: P, steps: St,
+    verifyCE: verifyCE,
+    selfTest: function () { return P.runSelfTest(); },
+    stepMeta: function () {
+      return St.STEPS.map(function (d, i) {
+        return { i: i, act: d.act, title: d.title, scene: d.scene, allow: Object.keys(d.allow || {}), hint: d.hint || '' };
+      });
+    }
+  };
+
+  /* ================= 启动 ================= */
+  St.apply(st, 0);
+  draw();
+  setTimeout(draw, 60);
+})();
+
+</script>
+</body>
+</html>
