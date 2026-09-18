@@ -170,6 +170,7 @@
         <div class="rd"><span>动能增量 qE·y</span><b class="gold" id="rdDdEk">—</b></div>
         <div class="rd"><span>是否打在极板上</span><b id="rdDhit">—</b></div>
         <div class="rd"><span>电子枪加速电压 U₀</span><b class="green" id="rdDU0">—</b></div>
+        <div class="rd"><span>画面纵向放大</span><b class="yellow" id="rdDzoom">×1</b></div>
       </div>
 
       <div id="gTube" class="hidden">
@@ -179,6 +180,8 @@
         <div class="rd"><span>屏上竖直位移 Y</span><b class="yellow" id="rdTY">—</b></div>
         <div class="rd"><span>屏上水平位移 X</span><b class="yellow" id="rdTX">—</b></div>
         <div class="rd"><span>信号的周期位置</span><b id="rdTt">—</b></div>
+        <div class="rd"><span>满量程 240 V 对应位移</span><b id="rdTfs">—</b></div>
+        <div class="rd"><span>偏转灵敏度</span><b class="green" id="rdTsen">—</b></div>
       </div>
 
       <div id="gEdge" class="hidden">
@@ -360,9 +363,10 @@
   var EX_L = 0.060, EX_D = 0.020, EX_U = 200, EX_V0 = 3.0e7;   // 6.0 cm / 2 cm / 200 V / 3.0×10⁷ m/s
 
   /* 示波管（教材 P47 图 10.5-4）：偏转板后还要飞一段才打到荧光屏 */
-  var TB_L = 0.030, TB_D = 0.010, TB_LSCREEN = 0.12;   // 板长 3 cm / 间距 1 cm / 板端到屏 12 cm
+  var TB_L = 0.030, TB_D = 0.012, TB_LSCREEN = 0.12;   // 板长 3 cm / 间距 1.2 cm / 板端到屏 12 cm
   var TB_U0 = 1000;                                     // 电子枪加速电压
-  var TB_UYMAX = 120, TB_UXMAX = 200;                   // 偏转电压上限（保证不打到板上）
+  var TB_UYMAX = 240, TB_UXMAX = 240;                   // 偏转电压满量程（留 25% 余量，不打到板上）
+  var TB_SCREEN = 0.10;                                 // 荧光屏有效直径 10 cm（亮斑满偏 ≈ ±4 cm）
 
   /* 教材练习第 6 题：质子疗法 */
   var PR_L = 4.0, PR_V = 1.0e7;
@@ -623,6 +627,25 @@
     }
     rel(tubeY(2 * 30, TB_U0, TB_L, TB_D, TB_LSCREEN) / tubeY(30, TB_U0, TB_L, TB_D, TB_LSCREEN), 2, '⑨Y ∝ U', 1e-12);
     ok(tubeY(TB_UYMAX, TB_U0, TB_L, TB_D, TB_LSCREEN) > 0, '⑨示波管偏转量为正');
+    /* 满量程必须"不打到偏转板上"且"亮斑落在荧光屏内" */
+    var uyMax = tubeY(TB_UYMAX, TB_U0, TB_L, TB_D, TB_LSCREEN);
+    var uxMax = tubeY(TB_UXMAX, TB_U0, TB_L, TB_D, TB_LSCREEN);
+    var uHit = 2 * TB_U0 * TB_D * TB_D / (TB_L * TB_L);      // y = d/2 的临界偏转电压
+    ok(TB_UYMAX < uHit && TB_UXMAX < uHit, '⑨满量程偏转电压低于打板临界值（' + uHit.toFixed(0) + ' V）');
+    ok(uyMax <= TB_SCREEN / 2 && uxMax <= TB_SCREEN / 2, '⑨满量程亮斑落在 Ø10 cm 荧光屏内');
+    /* 偏转灵敏度应在真实示波管的量级（0.05–1 mm/V） */
+    var sens = tubeSens(TB_U0, TB_L, TB_D, TB_LSCREEN) * 1000;
+    ok(sens > 0.05 && sens < 1.0, '⑨偏转灵敏度 ' + sens.toFixed(3) + ' mm/V 在真实量级内');
+    /* 电子枪出来的电子速度应是 ~10⁷ m/s 量级 */
+    var vTube = deflV0(TB_U0, E_CHG, M_E);
+    ok(vTube > 1e7 && vTube < 5e7, '⑨示波管电子速度 ' + (vTube / 1e7).toFixed(2) + '×10⁷ m/s');
+
+    /* ⑨b 同一装置同一 v₀：电子看得见偏转，质子小 1836 倍 ⇒ 画面上必须放大才看得见 */
+    var yE = deflY(EX_U, EX_D, EX_L, EX_V0, E_CHG, M_E);
+    var yP = deflY(EX_U, EX_D, EX_L, EX_V0, E_CHG, M_P);
+    rel(yE / yP, M_P / M_E, '⑨b 同一 v₀ 下 y 之比 = m 之比', 1e-9);
+    ok(yE > 0.25 * (EX_D / 2), '⑨b 电子偏转占板距 25% 以上（画面上看得见）');
+    ok(yP < 0.01 * (EX_D / 2), '⑨b 质子偏转不足板距 1%（必须放大才看得见）');
 
     /* ⑩重力判据：电子在 10⁴ N/C 中 qE/mg ≈ 1.8×10¹⁴；油滴必须比较 */
     ok(gravityRatio('e', 1e4) > 1e12, '⑩电子重力可忽略（比值 > 10¹²）');
@@ -649,7 +672,7 @@
     ACC_U: ACC_U, ACC_D: ACC_D,
     EX_L: EX_L, EX_D: EX_D, EX_U: EX_U, EX_V0: EX_V0,
     TB_L: TB_L, TB_D: TB_D, TB_LSCREEN: TB_LSCREEN, TB_U0: TB_U0,
-    TB_UYMAX: TB_UYMAX, TB_UXMAX: TB_UXMAX,
+    TB_UYMAX: TB_UYMAX, TB_UXMAX: TB_UXMAX, TB_SCREEN: TB_SCREEN,
     PR_L: PR_L, PR_V: PR_V, NU_Q: NU_Q, NU_R0: NU_R0, NU_R1: NU_R1,
 
     accelA: accelA, accelVNewton: accelVNewton, accelVEnergy: accelVEnergy,
@@ -776,8 +799,11 @@
   /** 长度（米 → cm / mm） */
   function lfmt(L) {
     var a = Math.abs(L);
+    if (a < 1e-12) { return '0 m'; }
     if (a >= 0.01) { return num(L * 100, a * 100 < 10 ? 3 : 2) + ' cm'; }
     if (a >= 1e-5) { return num(L * 1000, a * 1000 < 10 ? 3 : 2) + ' mm'; }
+    if (a >= 1e-9) { return num(L * 1e6, a * 1e6 < 10 ? 3 : 2) + ' µm'; }
+    if (a >= 1e-12) { return num(L * 1e9, 2) + ' nm'; }
     return sci(L, 2) + ' m';
   }
   /** 角度 */
@@ -810,9 +836,28 @@
   }
 
   /* ---------- 基础图形 ---------- */
-  function seg(ctx, x1, y1, x2, y2) { ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); }
+  /* 轴对齐的线一律半像素对齐：1 px 线正好压住一列/一行像素，
+     既不糊、又让逐帧像素指纹稳定（斜线不强制，避免破坏几何） */
+  function seg(ctx, x1, y1, x2, y2) {
+    if (x1 === x2 && y1 !== y2) { x1 = x2 = Math.round(x1) + 0.5; }
+    else if (y1 === y2 && x1 !== x2) { y1 = y2 = Math.round(y1) + 0.5; }
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+  }
   function stroke(ctx, color, lw) { ctx.strokeStyle = color; ctx.lineWidth = lw === undefined ? 1.4 : lw; }
   function dash(ctx, pat) { ctx.setLineDash(pat || [7, 5]); }
+  /** 显式虚线段：自己算相位、用实线小段拼出来。
+     Chrome 的 setLineDash 光栅化在"虚线贴着 AA 边缘"时会逐帧抖动，
+     自己画就没有这个问题（并且小段都是轴对齐的，会被 seg 取半像素）。 */
+  function dashSeg(ctx, x1, y1, x2, y2, on, off) {
+    var L = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+    if (L < 1) { return; }
+    var ux = (x2 - x1) / L, uy = (y2 - y1) / L, t = 0;
+    while (t < L - 0.5) {
+      var t2 = Math.min(L, t + on);
+      seg(ctx, x1 + ux * t, y1 + uy * t, x1 + ux * t2, y1 + uy * t2);
+      t += on + off;
+    }
+  }
   function nodash(ctx) { ctx.setLineDash([]); }
   function text(ctx, s, x, y, o) {
     o = o || {};
@@ -860,11 +905,13 @@
     arrow(ctx, x2 - 8, y, x2, y, color, 1, 5);
     text(ctx, txt, (x1 + x2) / 2, y - 9, { size: 12, color: color, align: 'center' });
   }
-  /** 带标题的浅框（画布内的分区） */
+  /** 带标题的浅框（画布内的分区）—— 四边取半像素，避免边缘 AA 抖动 */
   function box(ctx, x, y, w, h, title, color) {
+    var bx = Math.round(x) + 0.5, by = Math.round(y) + 0.5;
+    var bw = Math.round(w), bh = Math.round(h);
     stroke(ctx, color || THEME.soft2, 1.4);
-    ctx.strokeRect(x, y, w, h);
-    if (title) { text(ctx, title, x + 8, y + 12, { size: 12, color: color || THEME.grey, weight: 600 }); }
+    ctx.strokeRect(bx, by, bw, bh);
+    if (title) { text(ctx, title, bx + 8, by + 12, { size: 12, color: color || THEME.grey, weight: 600 }); }
   }
   /** 极板（粗线 + 电荷符号） */
   function plateH(ctx, x1, x2, y, sign, color, marks) {
@@ -954,6 +1001,7 @@
   }
   /** 能量条 */
   function bar(ctx, x, y, w, h, frac, color, fill) {
+    x = Math.round(x) + 0.5; y = Math.round(y) + 0.5; w = Math.round(w); h = Math.round(h);
     stroke(ctx, THEME.soft, 1); ctx.strokeRect(x, y, w, h);
     var f = clamp(frac, 0, 1);
     ctx.fillStyle = fill || THEME.goldFill;
@@ -1422,8 +1470,18 @@
     var a = P.deflA(U, d, PK.q, PK.m);
     var yPhys = P.deflY(U, d, l, v0, PK.q, PK.m);
     var tanT = P.deflTan(U, d, l, v0, PK.q, PK.m);
-    var hit = yPhys > d / 2;
-    var yShow = Math.min(yPhys, d / 2 + d * 0.30);
+    var halfGap = d / 2;
+    var hit = yPhys > halfGap;
+    /* 打到极板：轨迹在 y = d/2 处就终止（y(s) = ½a(s/v₀)² ⇒ s = l·√((d/2)/y)） */
+    var sHit = hit ? l * Math.sqrt(halfGap / yPhys) : l;
+    var yExitTrue = hit ? halfGap : yPhys;
+    /* 竖直放大：重粒子（质子比电子重 1836 倍）在同一装置同一 v₀ 下几乎不偏 ——
+       真实偏转可能只有板距的千分之几，画面上必须放大才看得见，倍率标在画面上 */
+    var zoom = 1;
+    if (!hit && yPhys > 0 && yPhys < 0.25 * halfGap) {
+      zoom = (0.85 * halfGap) / yPhys;
+      if (zoom > 1e6) { zoom = 1e6; }
+    }
     /* 上板 A 带正电：电子（负）受向上的力 ⇒ 向上偏；正离子向下偏 */
     var dirUp = PK.neg ? 1 : -1;             /* +1 = 屏幕上向上偏 */
     var sgnScreen = -dirUp;                  /* 屏幕坐标里"向上"对应负角 */
@@ -1433,10 +1491,11 @@
     var xIn = W * 0.14, xOut = W * 0.68, xEndP = W * 0.94;
     var midY = top + plotH * 0.58;
     var halfD = Math.min(plotH * 0.40, 120);
-    var kY = halfD / (d / 2);
+    var kY = halfD / halfGap;
+    var kYT = kY * zoom;
     var kX = (xOut - xIn) / l;
 
-    /* 极板 */
+    /* 极板（永远按真实比例画） */
     plateH(ctx, xIn, xOut, midY - halfD, '+', THEME.red, true);
     plateH(ctx, xIn, xOut, midY + halfD, '−', THEME.blue, true);
     text(ctx, 'A（+）', xOut + 8, midY - halfD, { size: 12.5, color: THEME.red, weight: 600 });
@@ -1450,29 +1509,68 @@
     seg(ctx, xIn - 46, midY, xEndP, midY); nodash(ctx);
     if (!compact) { text(ctx, '中线', xIn - 50, midY - 10, { size: 11, color: THEME.grey, align: 'right' }); }
 
-    /* 轨迹：板内抛物线 + 板外直线（沿出射速度方向） */
-    var ypix = function (s) {              /* s ∈ [0, l] 为板内位置 */
+    /* 轨迹（板内抛物线 + 板外直线） */
+    var ypix = function (s) {
       var yy = 0.5 * a * Math.pow(s / v0, 2);
-      return midY - dirUp * Math.min(yy, yShow) * kY;
+      return midY - dirUp * Math.min(yy, halfGap) * kYT;
     };
-    var yExit = ypix(l);
-    /* 屏幕坐标系下的出射斜率 dy/dx = -dirUp · tanθ · (kY / kX) */
-    var slopeScreen = -dirUp * tanT * (kY / kX);
+    var xExit = xIn + kX * sHit;
+    var yExit = ypix(sHit);
+    var slopeScreen = -dirUp * tanT * (kYT / kX);
+    /* 真实轨迹（未放大时与上面重合；放大时画成细虚线，让学生看到"真实位置贴着中线"） */
+    if (zoom > 1.05) {
+      var ypixT = function (s) { return midY - dirUp * Math.min(0.5 * a * Math.pow(s / v0, 2), halfGap) * kY; };
+      stroke(ctx, 'rgba(255,255,255,0.55)', 1.4); dash(ctx, [6, 5]);
+      ctx.beginPath();
+      for (var k0 = 0; k0 <= 48; k0++) {
+        var xs0 = xIn + (xOut - xIn) * k0 / 48;
+        var ys0 = ypixT((xs0 - xIn) / kX);
+        if (k0 === 0) { ctx.moveTo(xs0, ys0); } else { ctx.lineTo(xs0, ys0); }
+      }
+      ctx.stroke(); nodash(ctx);
+      text(ctx, '白色虚线 = 真实轨迹（贴着中线，看不见）', xIn - 42, midY + 30,
+        { size: 11, color: THEME.grey });
+    }
     stroke(ctx, THEME.yellow, 2.6);
     ctx.beginPath();
     var N = 64, i;
     for (i = 0; i <= N; i++) {
-      var xx = xIn + (xOut - xIn) * i / N;
-      var yy2 = ypix((xx - xIn) / kX);
+      var ss = sHit * i / N;
+      var xx = xIn + kX * ss;
+      var yy2 = ypix(ss);
       if (i === 0) { ctx.moveTo(xx, yy2); } else { ctx.lineTo(xx, yy2); }
     }
     ctx.stroke();
-    /* 出板后的直线段 */
-    stroke(ctx, THEME.yellow, 1.6); dash(ctx, [8, 6]);
-    ctx.beginPath();
-    ctx.moveTo(xOut, yExit);
-    ctx.lineTo(xEndP, yExit + slopeScreen * (xEndP - xOut));
-    ctx.stroke(); nodash(ctx);
+    if (!hit && zoom <= 1.05) {
+      stroke(ctx, THEME.yellow, 1.6); dash(ctx, [8, 6]);
+      ctx.beginPath();
+      ctx.moveTo(xExit, yExit);
+      ctx.lineTo(xEndP, yExit + slopeScreen * (xEndP - xExit));
+      ctx.stroke(); nodash(ctx);
+    } else if (!hit) {
+      text(ctx, '出场后仍沿直线（放大后这段斜率没有意义，不画）', xOut + 10, midY + dirUp * halfD * 0.20,
+        { size: 11, color: THEME.grey });
+    } else {
+      /* 打在极板上：画一个"撞上去了"的记号，并停止轨迹 */
+      var hx = xExit, hy = midY - dirUp * halfGap;
+      stroke(ctx, THEME.red, 2);
+      seg(ctx, hx - 7, hy - 7, hx + 7, hy + 7);
+      seg(ctx, hx - 7, hy + 7, hx + 7, hy - 7);
+      text(ctx, '打在这里，轨迹到此为止', hx + 12, hy + dirUp * 16,
+        { size: 11.5, color: THEME.red, weight: 600 });
+    }
+
+    /* 竖直放大徽标 */
+    if (zoom > 1.05) {
+      var badgeY = midY - dirUp * halfD * 0.72;
+      ctx.fillStyle = THEME.bg;
+      ctx.fillRect(xIn - 44, badgeY - 13, W - (xIn - 44) - 14, 26);
+      stroke(ctx, THEME.yellow, 1.2);
+      ctx.strokeRect(xIn - 44, badgeY - 13, W - (xIn - 44) - 14, 26);
+      text(ctx, '纵向已放大 ×' + (zoom >= 100 ? zoom.toFixed(0) : zoom.toFixed(1)) +
+        '（真实偏转 y = ' + lfmt(yPhys) + '，只有板距的 ' + (yPhys / d * 100).toExponential(1) + '%）',
+        xIn - 36, badgeY, { size: 12, color: THEME.yellow, weight: 600 });
+    }
 
     /* 分解（灰＝辅助构造）：等时间间隔的投影 */
     if (st.show.split) {
@@ -1496,10 +1594,10 @@
     arrow(ctx, xIn - 42, midY, xIn - 6, midY, THEME.white, 3, 8);
     text(ctx, 'v₀ = ' + vfmt(v0), xIn - 46, midY + 16, { size: 12.5, color: THEME.yellow, align: 'left', weight: 600 });
 
-    /* 出射速度分解 + θ */
-    var xE = xOut + (xEndP - xOut) * 0.40;
-    var yE = yExit + slopeScreen * (xE - xOut);
-    if (st.show.angle) {
+    /* 出射速度分解 + θ（只有没打到极板时才有"出射"） */
+    var xE = xExit + (xEndP - xExit) * 0.40;
+    var yE = yExit + slopeScreen * (xE - xExit);
+    if (st.show.angle && !hit) {
       var Lv = 58, Lperp = Math.min(58, Math.max(12, 58 * tanT / Math.max(tanT, 0.06)));
       vec(ctx, xE, yE, xE + Lv, yE, THEME.white, 'v₀', 2.2);
       vec(ctx, xE, yE, xE + Lv, yE + sgnScreen * Lperp, THEME.blue, 'v⊥', 2.2);
@@ -1514,12 +1612,15 @@
         { size: 12.5, color: THEME.yellow, weight: 600, align: compact ? 'right' : 'left' });
     }
 
-    /* y 标注 */
-    var xMark = xOut - 8;
+    /* y 标注：按真实比例画（放大时它只是一小截，但数值是真的） */
+    var xMark = (zoom > 1.05) ? xIn + kX * sHit * 0.55 : xOut - 8;
+    var yMarkPix = (zoom > 1.05)
+      ? midY - dirUp * (0.5 * a * Math.pow((xMark - xIn) / kX / v0, 2)) * kY
+      : yExit;
     stroke(ctx, THEME.yellow, 1.6);
-    seg(ctx, xMark, midY, xMark, yExit);
-    text(ctx, 'y = ' + lfmt(yPhys), xMark - 14, (midY + yExit) / 2,
-      { size: 12.5, color: THEME.yellow, align: 'right', weight: 600 });
+    seg(ctx, xMark, midY, xMark, yMarkPix);
+    text(ctx, 'y = ' + lfmt(yPhys), xMark + 12, (midY + yMarkPix) / 2,
+      { size: 12.5, color: THEME.yellow, align: 'left', weight: 600 });
 
     /* 出界提示 */
     if (st.show.limit) {
@@ -1547,8 +1648,8 @@
     }
 
     if (st.show.energy) {
-      var Ek0 = 0.5 * PK.m * v0 * v0, dEk = P.deflWork(U, d, yPhys, PK.q);
-      textBlock(ctx, '全过程动能定理：qU_总 = ΔEk，其中 U_总 = E·y = ' + ufmt(U / d * yPhys),
+      var Ek0 = 0.5 * PK.m * v0 * v0, dEk = P.deflWork(U, d, yExitTrue, PK.q);
+      textBlock(ctx, '全过程动能定理：qU_总 = ΔEk，其中 U_总 = E·y = ' + ufmt(U / d * yExitTrue),
         12, by + 16, W - 24, { size: 12.5, color: THEME.white, weight: 600, lh: 16 });
       var bwi = W - 190;
       text(ctx, '初动能', 12, by + 52, { size: 12.5, color: THEME.grey, weight: 600 });
@@ -1557,7 +1658,7 @@
       text(ctx, '动能增量', 12, by + 96, { size: 12.5, color: THEME.yellow, weight: 600 });
       bar(ctx, 96, by + 84, bwi, 24, dEk / Math.max(Ek0, dEk), THEME.yellow, THEME.yellowSoft);
       text(ctx, kefmt(dEk), W - 12, by + 96, { size: 12, color: THEME.yellow, align: 'right' });
-      var vE = P.deflVenergy(U, d, yPhys, v0, PK.q, PK.m);
+      var vE = P.deflVenergy(U, d, yExitTrue, v0, PK.q, PK.m);
       textBlock(ctx, 'v = √(v₀² + 2qEy/m) = ' + vfmt(vE) + '（与分速度合成完全一致）',
         12, by + bh2 - 30, W - 24, { size: 12.5, color: THEME.yellow, weight: 600, lh: 16 });
       S.hit = {};
@@ -1597,8 +1698,9 @@
     textBlock(ctx, '装置量写法（U₀ = ' + ufmt(st.U0) + '）：y = Ul²/(4U₀d) = ' +
       lfmt(P.deflY0(U, d, l, st.U0)) + '　tanθ = ' + num(P.deflTan0(U, d, l, st.U0), 4),
       12, by + 52, W - 24, { size: 12, color: THEME.grey, lh: 15 });
-    textBlock(ctx, '整条轨迹是一条抛物线（类平抛）：沿 v₀ 匀速 ＋ 垂直方向匀加速',
-      12, by + 84, W - 24, { size: 12, color: THEME.white, lh: 15 });
+    textBlock(ctx, hit ? '偏转量已经超过板距的一半 —— 这条轨迹根本飞不出电场，画面上的黄线在这里就断了。'
+      : '整条轨迹是一条抛物线（类平抛）：沿 v₀ 匀速 ＋ 垂直方向匀加速',
+      12, by + 84, W - 24, { size: 12, color: hit ? THEME.red : THEME.white, lh: 15 });
     S.hit = { deflect: { xIn: xIn, xOut: xOut, midY: midY, kY: kY, dirUp: dirUp, kX: kX } };
   }
 
@@ -1685,10 +1787,19 @@
   }
 
   /* =====================================================================
-     场景：tube —— 示波管（侧视结构 + 荧光屏正视图）
+     场景：tube —— 示波管（教材图10.5-4 甲 侧视结构 + 乙 荧光屏正视图 + 图10.5-5 扫描电压）
+
+     几何口径（严格照教材图 10.5-4 甲）：
+       · YY′ 是一对【水平板】（一上一下）⇒ 电场竖直 ⇒ 亮斑上下移动
+         侧视图里正好看得见它们（两条水平粗线）
+       · XX′ 是一对【竖直板】（一前一后，垂直于纸面）⇒ 电场水平 ⇒ 亮斑左右移动
+         侧视图里看不见它们的间距（在纸面法向），所以按教材的斜二测画法
+         画成一前一后错开的两块板（近板画在右上、远板画在左下），并标注"⊥纸面"
+       · 荧光屏正视图的坐标标签照教材乙：Y 上、Y′ 下、X 右、X′ 左
      ===================================================================== */
   function tubeSignal(st, tau) {
-    /* 返回某一时刻的 (UX, UY) —— 单位 V */
+    /* 返回某一时刻的 (UX, UY) —— 单位 V
+       教材 P47：YY′ 加待测【信号电压】，XX′ 加仪器自产的【锯齿形扫描电压】 */
     var m = st.tubeMode;
     var UY = 0, UX = 0;
     var ph = 2 * Math.PI * tau;
@@ -1698,81 +1809,147 @@
     else if (m === 'xshift') { UY = st.UY * Math.sin(ph); UX = st.UX; }
     else if (m === 'scan') { UY = st.UY * Math.sin(ph); UX = st.UX * (2 * tau - 1); }
     else { UY = 0; UX = 0; }
+    /* sin(2π) 会留下 ~10⁻¹⁶ 的浮点残渣 —— 它会让读数变成 "−4×10⁻¹⁸ m" 这种假数字，必须抹平 */
+    if (Math.abs(UY) < 1e-9 * Math.max(1, Math.abs(st.UY))) { UY = 0; }
+    if (Math.abs(UX) < 1e-9 * Math.max(1, Math.abs(st.UX))) { UX = 0; }
     return { UX: UX, UY: UY };
+  }
+
+  /** 电压–时间小图：曲线 + 当前时刻游标（yMax 为满量程） */
+  function utInset(ctx, x, y, w, h, title, fn, tNow, color, yMax, saw) {
+    box(ctx, x, y, w, h, title, THEME.soft2);
+    var gx0 = x + 46, gx1 = x + w - 12;
+    var gy = y + h * 0.58;
+    var amp = h * 0.30;
+    stroke(ctx, THEME.soft2, 1);
+    seg(ctx, gx0, gy, gx1, gy);
+    text(ctx, 't', gx1, gy + 12, { size: 11, color: THEME.grey, align: 'right' });
+    text(ctx, 'u', gx0 - 8, y + h * 0.42, { size: 11, color: THEME.grey, align: 'right' });
+    /* 曲线 */
+    stroke(ctx, color, 2);
+    ctx.beginPath();
+    var N = 200;
+    for (var i = 0; i <= N; i++) {
+      var tau = i / N;
+      var px = gx0 + (gx1 - gx0) * tau;
+      var py = gy - amp * (fn(tau) / yMax);
+      if (i === 0) { ctx.moveTo(px, py); } else { ctx.lineTo(px, py); }
+    }
+    ctx.stroke();
+    /* 锯齿回扫（图10.5-5 里那条竖直虚线） */
+    if (saw) {
+      stroke(ctx, THEME.grey, 1);
+      dashSeg(ctx, gx1, gy - amp, gx1, gy + amp, 4, 4);
+    }
+    /* 已扫过的那一段加粗（"摊开"到哪儿了） */
+    stroke(ctx, color, 3.4);
+    ctx.beginPath();
+    var M2 = Math.max(2, Math.round(N * tNow));
+    for (i = 0; i <= M2; i++) {
+      var t2 = tNow * i / M2;
+      var px2 = gx0 + (gx1 - gx0) * t2;
+      var py2 = gy - amp * (fn(t2) / yMax);
+      if (i === 0) { ctx.moveTo(px2, py2); } else { ctx.lineTo(px2, py2); }
+    }
+    ctx.stroke();
+    /* 当前时刻游标 */
+    var cx2 = gx0 + (gx1 - gx0) * tNow;
+    stroke(ctx, THEME.yellow, 1.2);
+    dashSeg(ctx, cx2, y + 15, cx2, gy + amp + 8, 3, 3);
+    dot(ctx, cx2, gy - amp * (fn(tNow) / yMax), 3.4, THEME.yellow, true);
+  }
+
+  /** 斜二测画法的一对"垂直于纸面"的板（近板右上、远板左下） */
+  function platePairOblique(ctx, cx, cy, w, h, sk, off) {
+    function slab(px, py, dashed) {
+      ctx.beginPath();
+      ctx.moveTo(px - w / 2, py - h / 2);
+      ctx.lineTo(px + w / 2, py - h / 2);
+      ctx.lineTo(px + w / 2 + sk, py + h / 2);
+      ctx.lineTo(px - w / 2 + sk, py + h / 2);
+      ctx.closePath();
+      stroke(ctx, THEME.white, 1.6);
+      if (!dashed) { ctx.fillStyle = 'rgba(255,255,255,0.05)'; ctx.fill(); }
+      ctx.stroke();
+    }
+    slab(cx - off, cy + off, true);
+    slab(cx + off, cy - off, false);
   }
 
   function drawTube(ctx, W, H, st, S) {
     var compact = W < 620;
-    var sideW = compact ? W * 0.56 : W * 0.60;
-    var axY = H * 0.34;
-    var tubeH = Math.min(96, H * 0.20);
-    var x0 = W * 0.05, x1 = sideW - 10;
-    var mid = (x0 + x1) / 2;
+    var sideW = compact ? W * 0.52 : W * 0.56;
+    var axY = H * (compact ? 0.15 : 0.19);
+    var tubeH = Math.min(92, H * (compact ? 0.13 : 0.17));
+    var x0 = 12, x1 = sideW - 10;
 
-    /* 管壳 */
+    /* ---- 管壳 ---- */
     stroke(ctx, THEME.soft, 1.2);
     ctx.strokeRect(x0, axY - tubeH / 2, x1 - x0, tubeH);
     /* 电子枪 */
-    var gw = (x1 - x0) * 0.17;
+    var gw = (x1 - x0) * 0.16;
     stroke(ctx, THEME.white, 2.2);
-    ctx.strokeRect(x0 + 4, axY - tubeH * 0.26, gw, tubeH * 0.52);
-    text(ctx, '电子枪', x0 + 4 + gw / 2, axY + tubeH * 0.62, { size: 11.5, color: THEME.white, align: 'center', weight: 600 });
-    /* 两组偏转电极（极板本体为白色几何；红蓝只用在极性符号上） */
-    var xXX = x0 + (x1 - x0) * 0.36, xYY = x0 + (x1 - x0) * 0.58;
-    var pw = (x1 - x0) * 0.11;
-    /* XX′：两块竖直板（电场水平 ⇒ 亮斑左右移动） */
-    plateV(ctx, axY - tubeH * 0.34, axY + tubeH * 0.34, xXX, '+', THEME.white, false);
-    plateV(ctx, axY - tubeH * 0.34, axY + tubeH * 0.34, xXX + pw, '−', THEME.white, false);
-    text(ctx, '+', xXX - 8, axY - 8, { size: 12, color: THEME.red, align: 'center', weight: 700 });
-    text(ctx, '−', xXX + pw + 8, axY + 8, { size: 12, color: THEME.blue, align: 'center', weight: 700 });
-    text(ctx, 'XX′', xXX + pw / 2, axY - tubeH * 0.52, { size: 11.5, color: THEME.white, align: 'center', weight: 600 });
-    text(ctx, '管左右', xXX + pw / 2, axY + tubeH * 0.56, { size: 10.5, color: THEME.grey, align: 'center' });
-    /* YY′：两块水平板（电场竖直 ⇒ 亮斑上下移动） */
-    plateH(ctx, xYY, xYY + pw * 1.5, axY - tubeH * 0.30, '+', THEME.white, false);
-    plateH(ctx, xYY, xYY + pw * 1.5, axY + tubeH * 0.30, '−', THEME.white, false);
-    text(ctx, '+', xYY + pw * 0.75, axY - tubeH * 0.30 - 10, { size: 12, color: THEME.red, align: 'center', weight: 700 });
-    text(ctx, '−', xYY + pw * 0.75, axY + tubeH * 0.30 + 10, { size: 12, color: THEME.blue, align: 'center', weight: 700 });
-    text(ctx, 'YY′', xYY + pw * 0.75, axY - tubeH * 0.52, { size: 11.5, color: THEME.white, align: 'center', weight: 600 });
-    text(ctx, '管上下', xYY + pw * 0.75, axY + tubeH * 0.56, { size: 10.5, color: THEME.grey, align: 'center' });
-    /* 轴线 */
-    stroke(ctx, THEME.soft2, 1); dash(ctx, [6, 5]); seg(ctx, x0, axY, x1, axY); nodash(ctx);
+    ctx.strokeRect(x0 + 5, axY - tubeH * 0.26, gw, tubeH * 0.52);
+    text(ctx, '电子枪', x0 + 5 + gw / 2, axY + tubeH * 0.60,
+      { size: 11.5, color: THEME.white, align: 'center', weight: 600 });
 
-    /* 当前时刻的偏转量 */
+    /* ---- YY′：一对水平板（侧视图里看得见） ---- */
+    var xYY = x0 + (x1 - x0) * 0.50, yw = (x1 - x0) * 0.20;
+    plateH(ctx, xYY, xYY + yw, axY - tubeH * 0.30, '+', THEME.white, false);
+    plateH(ctx, xYY, xYY + yw, axY + tubeH * 0.30, '−', THEME.white, false);
+    text(ctx, '+', xYY + yw * 0.5, axY - tubeH * 0.30 - 10, { size: 12, color: THEME.red, align: 'center', weight: 700 });
+    text(ctx, '−', xYY + yw * 0.5, axY + tubeH * 0.30 + 10, { size: 12, color: THEME.blue, align: 'center', weight: 700 });
+    text(ctx, 'YY′', xYY + yw * 0.5, axY - tubeH * 0.56, { size: 11.5, color: THEME.white, align: 'center', weight: 600 });
+    text(ctx, compact ? '管上下' : '管上下（板面水平）', xYY + yw * 0.5, axY + tubeH * 0.62,
+      { size: 10.5, color: THEME.grey, align: 'center' });
+
+    /* ---- XX′：一对竖直板，一前一后（垂直于纸面） ---- */
+    var xXX = x0 + (x1 - x0) * 0.30;
+    var pw = (x1 - x0) * 0.070, ph = tubeH * 0.66, off = tubeH * 0.18;
+    platePairOblique(ctx, xXX, axY, pw, ph, pw * 0.42, off);
+    text(ctx, 'XX′', xXX, axY - tubeH * 0.92, { size: 11.5, color: THEME.white, align: 'center', weight: 600 });
+    text(ctx, compact ? '管左右（⊥纸面）' : '管左右（两板一前一后，⊥纸面）', xXX, axY + tubeH * 0.92,
+      { size: 10.5, color: THEME.grey, align: 'center' });
+
+    /* ---- 轴线 + 电子束（侧视图只体现"上下"偏转） ---- */
+    stroke(ctx, THEME.soft2, 1); dash(ctx, [6, 5]);
+    seg(ctx, x0, axY, x1, axY); nodash(ctx);
+
     var sig = tubeSignal(st, clamp(st.t, 0, 1));
-    var Yy = P.tubeY(sig.UY, P.TB_U0, P.TB_L, P.TB_D, P.TB_LSCREEN);
-    var Yx = P.tubeY(sig.UX, P.TB_U0, P.TB_L, P.TB_D, P.TB_LSCREEN);
     var yMax = P.tubeY(P.TB_UYMAX, P.TB_U0, P.TB_L, P.TB_D, P.TB_LSCREEN);
     var xMax = P.tubeY(P.TB_UXMAX, P.TB_U0, P.TB_L, P.TB_D, P.TB_LSCREEN);
+    var Yy = P.tubeY(sig.UY, P.TB_U0, P.TB_L, P.TB_D, P.TB_LSCREEN);
+    var Yx = P.tubeY(sig.UX, P.TB_U0, P.TB_L, P.TB_D, P.TB_LSCREEN);
+    var beamY = axY - (Yy / Math.max(yMax, 1e-9)) * tubeH * 0.28;
 
-    /* 电子束（示意） */
-    var beamY = axY - (Yy / Math.max(yMax, 1e-9)) * tubeH * 0.30;
     stroke(ctx, THEME.yellow, 2.2);
     ctx.beginPath();
-    ctx.moveTo(x0 + gw + 8, axY);
-    ctx.lineTo(xXX, axY);
-    ctx.lineTo(xYY + pw * 0.75, beamY);
+    ctx.moveTo(x0 + gw + 10, axY);
+    ctx.lineTo(xYY, axY);
+    ctx.lineTo(xYY + yw, beamY);
     ctx.lineTo(x1, beamY);
     ctx.stroke();
-    particle(ctx, x1 - 6, beamY, 4, THEME.blue, '−', true);
-    text(ctx, '电子束', mid * 0.7, axY - tubeH * 0.62, { size: 11.5, color: THEME.yellow, align: 'center' });
+    particle(ctx, x1 - 7, beamY, 4, THEME.yellow, null, true);
+    text(ctx, '电子束', x0 + (x1 - x0) * 0.33, axY - tubeH * 0.60, { size: 11.5, color: THEME.yellow, align: 'center' });
 
     /* ---- 荧光屏正视图 ---- */
-    var sx = sideW + 8, sw = W - sx - 12, sy = H * 0.08, sh = compact ? H * 0.50 : H * 0.56;
-    if (sw < 90) { sw = 90; }
+    var sx = sideW + 6, sw = W - sx - 12;
+    if (sw < 88) { sw = 88; }
+    var sy = H * (compact ? 0.04 : 0.05);
+    var sh = compact ? H * 0.44 : H * 0.58;
     var size = Math.min(sw, sh);
     var cxS = sx + sw / 2, cyS = sy + sh / 2;
-    var half = size / 2 - 12;
-    box(ctx, cxS - half, cyS - half, half * 2, half * 2, '荧光屏（从右向左看）', THEME.soft2);
-    /* 坐标轴 */
+    var half = size / 2 - 14;
+    box(ctx, cxS - half - 8, cyS - half - 8, half * 2 + 16, half * 2 + 16,
+      compact ? '荧光屏' : '荧光屏（从右向左看，照教材图10.5-4乙）', THEME.soft2);
     stroke(ctx, THEME.soft2, 1);
-    seg(ctx, cxS - half, cyS, cxS + half, cyS);
-    seg(ctx, cxS, cyS - half, cxS, cyS + half);
-    text(ctx, 'X', cxS + half - 12, cyS - 12, { size: 11, color: THEME.grey });
-    text(ctx, 'Y', cxS + 12, cyS - half + 12, { size: 11, color: THEME.grey });
-    text(ctx, 'X′', cxS - half + 6, cyS - 12, { size: 11, color: THEME.grey });
-    text(ctx, 'Y′', cxS + 12, cyS + half - 12, { size: 11, color: THEME.grey });
+    seg(ctx, cxS - half - 4, cyS, cxS + half + 4, cyS);
+    seg(ctx, cxS, cyS - half - 4, cxS, cyS + half + 4);
+    text(ctx, 'Y', cxS, cyS - half - 14, { size: 11.5, color: THEME.grey, align: 'center', weight: 600 });
+    text(ctx, 'Y′', cxS, cyS + half + 14, { size: 11.5, color: THEME.grey, align: 'center', weight: 600 });
+    text(ctx, 'X′', cxS - half - 14, cyS, { size: 11.5, color: THEME.grey, align: 'center', weight: 600 });
+    text(ctx, 'X', cxS + half + 14, cyS, { size: 11.5, color: THEME.grey, align: 'center', weight: 600 });
 
-    /* 亮斑与余晖 */
     var kSX = half / Math.max(xMax, 1e-12), kSY = half / Math.max(yMax, 1e-12);
     var spot = function (tau) {
       var s = tubeSignal(st, tau);
@@ -1781,45 +1958,57 @@
         y: cyS - P.tubeY(s.UY, P.TB_U0, P.TB_L, P.TB_D, P.TB_LSCREEN) * kSY
       };
     };
-    /* 余晖轨迹 */
-    var persist = (st.tubeMode === 'scan' || st.tubeMode === 'yline' || st.tubeMode === 'xshift');
-    if (persist) {
-      stroke(ctx, 'rgba(255,255,0,0.38)', 2);
+    /* 余晖：只画"已经扫过"的那一段（0 → 当前时刻），拖动 t 就是看波形被一点点画出来 */
+    var tNow = clamp(st.t, 0, 1);
+    var m = st.tubeMode;
+    if (m === 'yline' || m === 'scan') {
+      stroke(ctx, 'rgba(255,255,0,0.42)', 2);
       ctx.beginPath();
-      var N = 220;
+      var N = 200;
       for (var i = 0; i <= N; i++) {
-        var tau = (st.tubeMode === 'scan') ? i / N : (st.tubeMode === 'yline' ? i / N : 0);
-        var pt = (st.tubeMode === 'yline' || st.tubeMode === 'scan') ? spot(tau) : spot(0);
+        var tau = tNow * i / N;
+        var pt = spot(tau);
         if (i === 0) { ctx.moveTo(pt.x, pt.y); } else { ctx.lineTo(pt.x, pt.y); }
       }
       ctx.stroke();
-      if (st.tubeMode === 'xshift') {
-        /* Y 在变、X 恒定：屏上是一条会被"推着走"的竖线 —— 用当前时刻的一条竖线表示 */
-        stroke(ctx, 'rgba(255,255,0,0.38)', 2);
-        ctx.beginPath();
-        for (i = 0; i <= 60; i++) {
-          var p2 = spot(i / 60);
-          var xx = cxS + (sig.UX > 0 ? 1 : sig.UX < 0 ? -1 : 0) * Math.abs(P.tubeY(sig.UX, P.TB_U0, P.TB_L, P.TB_D, P.TB_LSCREEN)) * kSX;
-          if (i === 0) { ctx.moveTo(xx, p2.y); } else { ctx.lineTo(xx, p2.y); }
-        }
-        ctx.stroke();
+    } else if (m === 'xshift') {
+      /* 官方四问第③问：Y 仍在变、X 加不变电压 ⇒ 竖直亮线整体左右平移（X 反极性则移到另一侧） */
+      stroke(ctx, 'rgba(255,255,0,0.42)', 2);
+      ctx.beginPath();
+      var xxS = cxS + Yx * kSX;
+      for (i = 0; i <= 80; i++) {
+        var p2 = spot(tNow * i / 80);
+        if (i === 0) { ctx.moveTo(xxS, p2.y); } else { ctx.lineTo(xxS, p2.y); }
       }
+      ctx.stroke();
     }
-    var cur = spot(clamp(st.t, 0, 1));
+    var cur = spot(tNow);
     dot(ctx, cur.x, cur.y, 5, THEME.yellow, true);
 
-    /* 底部：当前电压与屏上位移 */
-    var by = sy + sh + 8;
-    if (by < H - 20) {
-      text(ctx, 'U_Y = ' + ufmt(sig.UY) + '　U_X = ' + ufmt(sig.UX),
-        12, by + 10, { size: 12.5, color: THEME.white, weight: 600 });
-      text(ctx, '屏上位移 Y = ' + lfmt(Yy) + '（竖直）　X = ' + lfmt(Yx) + '（水平）',
-        12, by + 30, { size: 12, color: THEME.yellow });
-      if (!compact) {
-        text(ctx, 'Y ∝ U：电压的变化被线性标定成亮斑的位移',
-          W - 12, by + 10, { size: 12, color: THEME.grey, align: 'right' });
-      }
+    /* 屏上读数 */
+    var by = cyS + half + 30;
+    if (by < H - 46) {
+      text(ctx, 'U_Y = ' + ufmt(sig.UY) + '　U_X = ' + ufmt(sig.UX), 12, by,
+        { size: 12.5, color: THEME.white, weight: 600 });
+      text(ctx, '屏上位移　Y = ' + lfmt(Yy) + '（竖直）　X = ' + lfmt(Yx) + '（水平）', 12, by + 19,
+        { size: 12, color: THEME.yellow });
     }
+
+    /* ---- 电压–时间小图（左下方空白处） ---- */
+    var iy = compact ? H * 0.52 : H * 0.46;
+    var ih = compact ? H * 0.19 : H * 0.17;
+    var iw = (sideW - 24 - 10) / 2;
+    utInset(ctx, 12, iy, iw, ih, compact ? '信号 u_Y–t' : 'YY′ 的信号电压 u_Y–t（正弦）',
+      function (tau) { return (m === 'pointY' || m === 'flat') ? 0 : st.UY * Math.sin(2 * Math.PI * tau); },
+      tNow, THEME.yellow, Math.max(1, st.UY), false);
+    utInset(ctx, 12 + iw + 10, iy, iw, ih, compact ? '扫描 u_X–t' : 'XX′ 的扫描电压 u_X–t（锯齿波）',
+      function (tau) {
+        if (m === 'xshift' || m === 'pointX') { return st.UX; }
+        if (m === 'scan') { return st.UX * (2 * tau - 1); }
+        return 0;
+      },
+      tNow, THEME.red, Math.max(1, st.UX), (m === 'scan'));
+
     S.hit = { screen: { cx: cxS, cy: cyS, half: half, kSX: kSX, kSY: kSY } };
   }
 
@@ -2345,10 +2534,10 @@
         '<b>红线</b>：官方明示示波管的原理为<b>拓展学习内容</b>（教参 P57），本课<b>只讲原理、不讲电路</b> —— ' +
         '不展开扫描电路、不引入时间常数。',
       formula: '示波管 ＝ 电子枪 ＋ 偏转电极（XX′、YY′两组）＋ 荧光屏',
-      init: function (st) { st.tubeMode = 'flat'; st.UX = 0; st.UY = 0; }
+      init: function (st) { st.tubeMode = 'flat'; st.UX = 0; st.UY = 0; st.t = 1; }
     }),
     mk(A4, '谁管上下、谁管左右？', {
-      scene: 'tube', allow: { tubeMode: true, UY: true, UX: true, t: true }, show: {},
+      scene: 'tube', allow: { tubeMode: true, UY: true, UX: true }, show: {},
       hint: '切<b>「Y 加不变电压」／「X 加不变电压」</b>，再拖<b>电压大小（正负都能拖）</b>：YY′ 管上下、XX′ 管左右。',
       note: '教参 P59 官方四问的第①问：<b>"如果在电极 X、X′ 之间不加电压，但在 Y、Y′ 之间加不变的电压，' +
         '使 Y 的电势比 Y′ 高……电子将打在荧光屏的什么位置？"</b>（反过来呢？换成 X 正 X′ 负呢？）<br>' +
@@ -2360,18 +2549,18 @@
     }),
     mk(A4, 'Y 加变化电压：屏幕上是一条竖线', {
       scene: 'tube', allow: { UY: true, t: true }, show: {},
-      hint: '拖<b>Y 电压幅度</b>、拖<b>时刻 t</b>：亮斑上下跑，余晖连成一条竖直亮线。',
+      hint: '拖<b>Y 电压幅度</b>、拖<b>时刻 t</b>：亮斑上下跑，余晖连成一条竖直亮线（把 t 往回拖，可以看到这条线是"扫"出来的）。',
       note: '教参 P59 官方四问第②问：<b>"如果在电极 X、X′ 之间不加电压，而在电极 Y、Y′ 之间所加的电压' +
         '按图10-11甲所示的规律随时间变化，在荧光屏上会看到什么图形？"</b><br>' +
         '答案是<b>一条竖直亮线</b>（不是"一个上下跳的点"）—— 因为它跑得太快，眼睛看到的是余晖连成的整条线。<br>' +
         '为什么可以认为"每一瞬间电压不变"？官方理由：<b>电子速度很大，穿越偏转电场的很短时间内膜电压恒定不变</b>（教参 P59）。<br>' +
         '方法指令（官方原话的通俗版）：讨论电压变化引起电子位置变化时，<b>先描特殊点、后连线</b>。',
       formula: 'y ∝ U　⇒　U 在变，亮斑的 y 就在按同样的规律变',
-      init: function (st) { st.tubeMode = 'yline'; st.UY = 100; st.UX = 0; st.t = 0.5; }
+      init: function (st) { st.tubeMode = 'yline'; st.UY = 100; st.UX = 0; st.t = 1; }
     }),
     mk(A4, 'X 加扫描电压：稳定的波形出现了', {
       scene: 'tube', allow: { UX: true, t: true }, show: {},
-      hint: '拖<b>X 扫描电压幅度</b>、拖<b>时刻 t</b>：亮斑一边上下、一边被"摊开"，屏上出现稳定的正弦波形。',
+      hint: '拖<b>X 扫描电压幅度</b>、拖<b>时刻 t</b>：亮斑一边左右扫、一边上下动，屏上被"摊开"成稳定波形（把 t 往回拖，看波形被一点点画出来）。',
       note: '教参 P59 官方四问第④问：<b>"如果 Y、Y′ 之间的电压仍然如图10-11甲所示，' +
         '而在电极 X、X′ 之间所加的电压按图10-11乙所示的规律变化，在荧光屏上会看到什么图形？"</b><br>' +
         '教材 P47 的落点句：<b>"如果信号电压是周期性的，并且扫描电压与信号电压的周期相同，' +
@@ -2379,7 +2568,7 @@
         '学生最容易错的一处：认为"扫描电压也在屏幕上留下一条竖线" —— ' +
         '用"<b>扫描电压太快，眼睛只看到它把图形"摊开"</b>"来解释。',
       formula: 'X 加锯齿波（扫描电压）＋ Y 加信号电压　⇒　Y–X 图像 = 信号的波形',
-      init: function (st) { st.tubeMode = 'scan'; st.UY = 100; st.UX = 160; st.t = 0.62; }
+      init: function (st) { st.tubeMode = 'scan'; st.UY = 100; st.UX = 180; st.t = 1; }
     }),
     mk(A4, 'y ∝ U：电压的变化被标定成位移', {
       scene: 'tube', allow: { UY: true }, show: {},
@@ -2389,7 +2578,7 @@
         '整条因果链：<br>' +
         '电子枪加速（例题1）→ 两组偏转电极按电压把电子推偏（例题2）→ 屏上亮斑位移 ∝ 电压 → 扫描电压把时间"摊开" → 稳定波形。',
       formula: 'y = Ul²/(4U₀d) ∝ U　⇒　亮斑位移是电压的"线性刻度尺"',
-      init: function (st) { st.tubeMode = 'yline'; st.UY = 60; st.UX = 0; st.t = 0.5; }
+      init: function (st) { st.tubeMode = 'yline'; st.UY = 60; st.UX = 0; st.t = 1; }
     }),
 
     /* ================= 第五幕 · 模型边界与应用（环节⑤⑥） ================= */
@@ -2590,6 +2779,9 @@
       $('rdDhit').textContent = y > st.d / 2 ? '是（y > d/2）' : '否（y < d/2）';
       $('rdDhit').className = y > st.d / 2 ? 'pos' : 'green';
       $('rdDU0').textContent = R.ufmt(st.U0);
+      var zoom = 1;
+      if (y <= st.d / 2 && y > 0 && y < 0.25 * (st.d / 2)) { zoom = (0.85 * (st.d / 2)) / y; if (zoom > 1e6) { zoom = 1e6; } }
+      $('rdDzoom').textContent = zoom > 1.05 ? ('×' + (zoom >= 100 ? zoom.toFixed(0) : zoom.toFixed(1))) : '×1（真实比例）';
     } else if (sc === 'tube') {
       var names = { flat: '都不加电压', pointY: 'Y 加不变电压', pointX: 'X 加不变电压', yline: 'Y 加变化电压', xshift: 'Y 变＋X 不变', scan: 'X 加扫描电压' };
       var sig = R.tubeSignal(st, clamp(st.t, 0, 1));
@@ -2599,6 +2791,8 @@
       $('rdTY').textContent = R.lfmt(P.tubeY(sig.UY, P.TB_U0, P.TB_L, P.TB_D, P.TB_LSCREEN));
       $('rdTX').textContent = R.lfmt(P.tubeY(sig.UX, P.TB_U0, P.TB_L, P.TB_D, P.TB_LSCREEN));
       $('rdTt').textContent = (st.t * 100).toFixed(0) + '% 个周期';
+      $('rdTfs').textContent = R.lfmt(P.tubeY(P.TB_UYMAX, P.TB_U0, P.TB_L, P.TB_D, P.TB_LSCREEN));
+      $('rdTsen').textContent = (P.tubeSens(P.TB_U0, P.TB_L, P.TB_D, P.TB_LSCREEN) * 1000).toFixed(3) + ' mm/V';
     } else if (sc === 'edge') {
       $('rdEd').textContent = R.lfmt(st.d);
       $('rdEe').textContent = '≈ 3d（两侧 6d）';
@@ -2667,10 +2861,21 @@
     $('rgV').value = st.v / 1e6; $('lbV').textContent = R.vfmt(st.v);
 
     var i, list;
+    /* 粒子按钮按场景裁剪：偏转场景里油滴偏转只有 10⁻¹⁴ 板距，没有教学意义，直接不给 */
+    var allowP = (st.scene === 'accel')
+      ? ['e', 'p', 'h1', 'he1', 'he2', 'oil']
+      : ['e', 'p', 'h1', 'he1', 'he2'];
     list = document.querySelectorAll('#wrapParticle button');
     for (i = 0; i < list.length; i++) {
-      list[i].className = (list[i].getAttribute('data-p') === st.particle) ? 'on' : '';
+      var pk = list[i].getAttribute('data-p');
+      var okP = allowP.indexOf(pk) >= 0;
+      show(list[i], okP);
+      /* 注意：这里必须用 classList.toggle，直接赋 className 会把 hidden 冲掉 */
+      list[i].classList.toggle('on', pk === st.particle);
     }
+    /* 当前粒子若被裁掉，自动退回电子 */
+    if (!st.allow.particle) { /* 不改状态 */ }
+    else if (allowP.indexOf(st.particle) < 0) { st.particle = 'e'; }
     list = document.querySelectorAll('#wrapJudge button');
     for (i = 0; i < list.length; i++) {
       list[i].className = (list[i].getAttribute('data-judge') === st.judge) ? 'on' : '';
